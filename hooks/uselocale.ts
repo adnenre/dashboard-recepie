@@ -1,7 +1,7 @@
 // hooks/useLocale.ts
 import { useEffect, useState } from "react";
 import { useLocaleStore } from "@/store/localeStore";
-import { getDirection, translations, type Locale } from "@/lib/i18n";
+import { getDirection, translations } from "@/lib/i18n";
 
 export const useLocale = () => {
   const { locale, setLocale } = useLocaleStore();
