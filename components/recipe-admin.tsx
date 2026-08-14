@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ChefHat, Edit3, LogOut, Plus, Search, Trash2, Mail, Lock } from "lucide-react";
 import { appwriteConfigured } from "@/lib/firebase";
 import { listRecipes, localizedValue, removeRecipe, type Recipe } from "@/lib/recipes";
-import { getDirection, localeLabels, locales, type Locale, translations } from "@/lib/i18n";
+import { localeLabels, type Locale } from "@/lib/i18n";
 import { account } from "@/lib/appwrite-auth";
 import { useLocale } from "@/hooks/useLocale"; // Make sure this imports the Zustand version
 
