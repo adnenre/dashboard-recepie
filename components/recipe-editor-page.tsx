@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, ChefHat, Plus, Save, Trash2 } from "lucide-react";
 import { appwriteConfigured } from "@/lib/firebase";
 import { createRecipe, listRecipes, updateRecipe, type Recipe, type RecipeInput } from "@/lib/recipes";
-import { useLocale } from "@/hooks/useLocale";
+import useLocale from "@/hooks/useLocale";
 
 type FormState = Omit<RecipeInput, "servings"> & { servings: string };
 
