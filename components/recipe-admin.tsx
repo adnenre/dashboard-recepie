@@ -1,62 +1,134 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChefHat, Edit3, LogOut, Plus, Search, Trash2 } from "lucide-react";
+import { ChefHat, Edit3, LogOut, Plus, Search, Trash2, Mail, Lock } from "lucide-react";
 import { appwriteConfigured } from "@/lib/firebase";
 import { listRecipes, localizedValue, removeRecipe, type Recipe } from "@/lib/recipes";
 import { getDirection, localeLabels, locales, type Locale, translations } from "@/lib/i18n";
+import { account } from "@/lib/appwrite-auth";
 
 export function RecipeAdmin() {
   const [loggedIn, setLoggedIn] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [locale, setLocale] = useState<Locale>("en");
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [queryText, setQueryText] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Recipe | null>(null);
   const [notice, setNotice] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
   const t = translations[locale];
 
+  // Check auth status on mount
   useEffect(() => {
-    setLoggedIn(sessionStorage.getItem("recep-admin") === "true");
+    const checkAuth = async () => {
+      try {
+        // Check if user is already logged in
+        const session = await account.get();
+        setUser(session);
+        setLoggedIn(true);
+      } catch {
+        setLoggedIn(false);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+
     const saved = localStorage.getItem("recep-locale") as Locale | null;
     if (saved && locales.includes(saved)) setLocale(saved);
   }, []);
+
   useEffect(() => {
     localStorage.setItem("recep-locale", locale);
     document.documentElement.lang = locale;
     document.documentElement.dir = getDirection(locale);
   }, [locale]);
+
   useEffect(() => {
     if (!loggedIn) return;
     listRecipes()
       .then(setRecipes)
+
       .catch(() => setNotice(appwriteConfigured ? "Could not load recipes." : "Configure Appwrite to load saved recipes."));
   }, [loggedIn]);
 
   const filtered = useMemo(
     () =>
-      recipes.filter((recipe) =>
-        `${localizedValue(recipe.title, locale)} ${localizedValue(recipe.category, locale)} ${localizedValue(recipe.tags ?? [], locale).join(" ")}`
-          .toLowerCase()
-          .includes(queryText.toLowerCase()),
-      ),
+      recipes.filter((recipe) => {
+        // Safely get tags as array
+        const tagsArray = Array.isArray(recipe.tags) ? recipe.tags : typeof recipe.tags === "string" ? [] : [];
+
+        // Get localized values
+        const title = localizedValue(recipe.title, locale) || "";
+        const category = localizedValue(recipe.category, locale) || "";
+        const tags = tagsArray.map((tag) => (typeof tag === "string" ? tag : "")).join(" ");
+
+        const searchString = `${title} ${category} ${tags}`.toLowerCase();
+        const query = queryText.toLowerCase();
+
+        return searchString.includes(query);
+      }),
     [recipes, queryText, locale],
   );
-  const login = (event: React.FormEvent) => {
+
+  // Login with Appwrite using email and password
+  const login = async (event: React.FormEvent) => {
     event.preventDefault();
+    setAuthLoading(true);
+    setNotice("");
+
     const form = new FormData(event.currentTarget as HTMLFormElement);
-    if (form.get("username") === "admin" && form.get("password") === "admin") {
-      sessionStorage.setItem("recep-admin", "true");
+    const email = form.get("email") as string;
+    const password = form.get("password") as string;
+
+    try {
+      // Create session with email and password
+      // This is the current recommended method for Appwrite
+      await account.createEmailPasswordSession(email, password);
+
+      // Get user details after successful login
+      const session = await account.get();
+      setUser(session);
       setLoggedIn(true);
-    } else setNotice(t.invalidCredentials);
+      setNotice("Welcome back! 👋");
+    } catch (error: any) {
+      console.error("Auth error:", error);
+
+      // Handle specific error cases
+      if (error.type === "invalid_credentials") {
+        setNotice("Invalid email or password. Please try again.");
+      } else if (error.type === "user_not_found") {
+        setNotice("No account found with this email.");
+      } else {
+        setNotice(error.message || "Login failed. Please try again.");
+      }
+    } finally {
+      setAuthLoading(false);
+    }
   };
-  const logout = () => {
-    sessionStorage.removeItem("recep-admin");
-    setLoggedIn(false);
+
+  const logout = async () => {
+    try {
+      // Delete current session
+      await account.deleteSession("current");
+      setLoggedIn(false);
+      setUser(null);
+      setRecipes([]);
+      setNotice("Logged out successfully.");
+    } catch (error) {
+      console.error("Logout error:", error);
+      setNotice("Logout failed.");
+    }
   };
+
   const edit = (recipe: Recipe) => {
     sessionStorage.setItem("recep-edit-recipe", JSON.stringify(recipe));
     window.location.href = `/recipes/edit?id=${encodeURIComponent(recipe.id)}`;
   };
+
   const remove = async () => {
     if (!deleteTarget) return;
     try {
@@ -68,6 +140,7 @@ export function RecipeAdmin() {
       setNotice("Delete failed.");
     }
   };
+
   const language = (
     <select
       aria-label="Language"
@@ -81,7 +154,19 @@ export function RecipeAdmin() {
     </select>
   );
 
-  if (!loggedIn)
+  // Loading state
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#f5f1e8]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d96c45] mx-auto"></div>
+          <p className="mt-4 text-[#6e746d]">Loading...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!loggedIn) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f5f1e8] px-6 text-[#26352d]">
         <div className="absolute right-6 top-6">{language}</div>
@@ -95,25 +180,45 @@ export function RecipeAdmin() {
               <h1 className="font-serif text-3xl font-semibold">{t.signInTitle}</h1>
             </div>
           </div>
+
           <div className="flex flex-col gap-4">
-            <input
-              name="username"
-              defaultValue="admin"
-              placeholder={t.usernamePlaceholder}
-              className="rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
-            />
-            <input
-              name="password"
-              type="password"
-              placeholder={t.passwordPlaceholder}
-              className="rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
-            />
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a7765] size-4" />
+              <input
+                name="email"
+                type="email"
+                placeholder="Email"
+                className="w-full rounded-xl border border-[#d9d1c3] bg-white px-4 py-3 pl-10"
+                required
+              />
+            </div>
+
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a7765] size-4" />
+              <input
+                name="password"
+                type="password"
+                placeholder="Password"
+                className="w-full rounded-xl border border-[#d9d1c3] bg-white px-4 py-3 pl-10"
+                required
+                minLength={8}
+              />
+            </div>
+
             {notice && <p className="text-sm text-[#b24d2f]">{notice}</p>}
-            <button className="rounded-xl bg-[#26352d] px-4 py-3 font-semibold text-white">{t.signIn}</button>
+
+            <button
+              type="submit"
+              disabled={authLoading}
+              className="rounded-xl bg-[#26352d] px-4 py-3 font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#3a4a3f] transition-colors"
+            >
+              {authLoading ? "Signing in..." : t.signIn}
+            </button>
           </div>
         </form>
       </main>
     );
+  }
 
   return (
     <main className="min-h-screen bg-[#f5f1e8] text-[#26352d]">
@@ -129,9 +234,10 @@ export function RecipeAdmin() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <span className="text-sm text-[#8a7765] hidden sm:inline">{user?.name || user?.email}</span>
             {language}
-            <button onClick={logout} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm">
-              <LogOut />
+            <button onClick={logout} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-[#f5f1e8] transition-colors">
+              <LogOut className="size-4" />
               {t.signOut}
             </button>
           </div>
@@ -149,14 +255,14 @@ export function RecipeAdmin() {
             onClick={() => {
               window.location.href = "/recipes/new";
             }}
-            className="flex items-center justify-center gap-2 rounded-xl bg-[#d96c45] px-5 py-3 font-semibold text-white"
+            className="flex items-center justify-center gap-2 rounded-xl bg-[#d96c45] px-5 py-3 font-semibold text-white hover:bg-[#c45a35] transition-colors"
           >
-            <Plus />
+            <Plus className="size-5" />
             {t.newRecipe}
           </button>
         </div>
         <div className="mb-6 flex items-center gap-3 rounded-xl border border-[#ded7cb] bg-[#fffdf8] px-4 py-3">
-          <Search className="text-[#8a7765]" />
+          <Search className="text-[#8a7765] size-5" />
           <input
             value={queryText}
             onChange={(e) => setQueryText(e.target.value)}
@@ -176,16 +282,16 @@ export function RecipeAdmin() {
                 <div className="mt-5 flex gap-2">
                   <button
                     onClick={() => edit(recipe)}
-                    className="flex items-center gap-2 rounded-lg border border-[#ded7cb] px-3 py-2 text-sm font-semibold"
+                    className="flex items-center gap-2 rounded-lg border border-[#ded7cb] px-3 py-2 text-sm font-semibold hover:bg-[#f5f1e8] transition-colors"
                   >
-                    <Edit3 />
+                    <Edit3 className="size-4" />
                     {t.edit}
                   </button>
                   <button
                     onClick={() => setDeleteTarget(recipe)}
-                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-[#b24d2f]"
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-[#b24d2f] hover:bg-[#f5f1e8] transition-colors"
                   >
-                    <Trash2 />
+                    <Trash2 className="size-4" />
                     {t.delete}
                   </button>
                 </div>
@@ -198,12 +304,15 @@ export function RecipeAdmin() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#26352d]/45 p-4" role="dialog" aria-modal="true">
           <div className="w-full max-w-md rounded-2xl bg-[#fffdf8] p-6 shadow-2xl">
             <h2 className="font-serif text-2xl font-semibold">Delete recipe?</h2>
-            <p className="mt-2 text-sm text-[#6e746d]">Are you sure you want to delete “{localizedValue(deleteTarget.title, locale)}”?</p>
+            <p className="mt-2 text-sm text-[#6e746d]">Are you sure you want to delete "{localizedValue(deleteTarget.title, locale)}"?</p>
             <div className="mt-6 flex justify-end gap-3">
-              <button onClick={() => setDeleteTarget(null)} className="rounded-lg border border-[#ded7cb] px-4 py-2 font-semibold">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="rounded-lg border border-[#ded7cb] px-4 py-2 font-semibold hover:bg-[#f5f1e8] transition-colors"
+              >
                 No
               </button>
-              <button onClick={remove} className="rounded-lg bg-[#b24d2f] px-4 py-2 font-semibold text-white">
+              <button onClick={remove} className="rounded-lg bg-[#b24d2f] px-4 py-2 font-semibold text-white hover:bg-[#8a3d22] transition-colors">
                 Yes, delete
               </button>
             </div>
@@ -213,3 +322,4 @@ export function RecipeAdmin() {
     </main>
   );
 }
+export default RecipeAdmin;
