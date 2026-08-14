@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useLocaleStore } from "@/store/localeStore";
 import { getDirection, translations } from "@/lib/i18n";
 
-const useLocale = () => {
+export const useLocale = () => {
   const { locale, setLocale } = useLocaleStore();
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -29,5 +29,3 @@ const useLocale = () => {
     isHydrated,
   };
 };
-
-export default useLocale;

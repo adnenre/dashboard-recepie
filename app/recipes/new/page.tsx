@@ -1,5 +1,5 @@
-import { RecipeEditorPage } from '@/components/recipe-editor-page'
+import RecipeEditorPage from "@/components/recipe-editor-page";
 
 export default function NewRecipePage() {
-  return <RecipeEditorPage mode="create" />
+  return <RecipeEditorPage mode="create" />;
 }

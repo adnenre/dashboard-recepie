@@ -6,7 +6,7 @@ import { appwriteConfigured } from "@/lib/firebase";
 import { listRecipes, localizedValue, removeRecipe, type Recipe } from "@/lib/recipes";
 import { localeLabels, type Locale } from "@/lib/i18n";
 import { account } from "@/lib/appwrite-auth";
-import useLocale from "@/hooks/useLocale"; // Make sure this imports the Zustand version
+import { useLocale } from "@/hooks/useLocale"; // Make sure this imports the Zustand version
 
 export function RecipeAdmin() {
   const [loggedIn, setLoggedIn] = useState(false);

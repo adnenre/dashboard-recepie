@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, ChefHat, Plus, Save, Trash2 } from "lucide-react";
 import { appwriteConfigured } from "@/lib/firebase";
 import { createRecipe, listRecipes, updateRecipe, type Recipe, type RecipeInput } from "@/lib/recipes";
-import useLocale from "@/hooks/useLocale";
+import { useLocale } from "@/hooks/useLocale";
 
 type FormState = Omit<RecipeInput, "servings"> & { servings: string };
 
@@ -23,7 +23,7 @@ const blank: FormState = {
   featured: false,
 };
 
-export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | "edit"; recipeId?: string }) {
+function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | "edit"; recipeId?: string }) {
   const [form, setForm] = useState<FormState>(blank);
   const [loading, setLoading] = useState(mode === "edit");
   const [saving, setSaving] = useState(false);
@@ -298,3 +298,4 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
     </main>
   );
 }
+export default RecipeEditorPage;
