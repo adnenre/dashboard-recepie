@@ -1,12 +1,21 @@
-// Appwrite client kept in this file name for backwards-compatible imports.
-import { Client, Databases } from 'appwrite'
+// lib/firebase.ts
+// This file is kept for backward compatibility
+// Using TablesDB with tableId (not collectionId)
+import { createAppwriteClient } from "./appwrite-admin";
+import { account, client, ID } from "./appwrite-auth";
 
-const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT ?? ''
-const projectId = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID ?? ''
+const { databases, databaseId, tableId } = createAppwriteClient();
 
-export const appwriteConfigured = Boolean(endpoint && projectId)
-export const appwriteClient = new Client()
-if (appwriteConfigured) appwriteClient.setEndpoint(endpoint).setProject(projectId)
-export const databases = new Databases(appwriteClient)
-export const appwriteDatabaseId = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID ?? 'recipes'
-export const appwriteCollectionId = process.env.NEXT_PUBLIC_APPWRITE_COLLECTION_ID ?? 'recipes'
+export {
+  databases,
+  databaseId as appwriteDatabaseId,
+  tableId as appwriteCollectionId, // Keep the same export name for backward compatibility
+  tableId as appwriteTableId, // Also export as tableId for clarity
+  account,
+  client,
+  ID,
+};
+
+export const appwriteConfigured = Boolean(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT && process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID);
+
+export * from "./recipes";
