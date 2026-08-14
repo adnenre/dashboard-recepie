@@ -6,18 +6,20 @@ import { appwriteConfigured } from "@/lib/firebase";
 import { listRecipes, localizedValue, removeRecipe, type Recipe } from "@/lib/recipes";
 import { getDirection, localeLabels, locales, type Locale, translations } from "@/lib/i18n";
 import { account } from "@/lib/appwrite-auth";
+import { useLocale } from "@/hooks/useLocale"; // Make sure this imports the Zustand version
 
 export function RecipeAdmin() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [locale, setLocale] = useState<Locale>("en");
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [queryText, setQueryText] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Recipe | null>(null);
   const [notice, setNotice] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
-  const t = translations[locale];
+
+  // Use the Zustand hook - handles all localStorage and SSR issues
+  const { locale, setLocale, t } = useLocale();
 
   // Check auth status on mount
   useEffect(() => {
@@ -36,24 +38,21 @@ export function RecipeAdmin() {
     };
 
     checkAuth();
-
-    const saved = localStorage.getItem("recep-locale") as Locale | null;
-    if (saved && locales.includes(saved)) setLocale(saved);
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("recep-locale", locale);
-    document.documentElement.lang = locale;
-    document.documentElement.dir = getDirection(locale);
-  }, [locale]);
-
+  // Load recipes when logged in
   useEffect(() => {
     if (!loggedIn) return;
     listRecipes()
       .then(setRecipes)
-
-      .catch(() => setNotice(appwriteConfigured ? "Could not load recipes." : "Configure Appwrite to load saved recipes."));
-  }, [loggedIn]);
+      .catch(() =>
+        setNotice(
+          appwriteConfigured
+            ? t.couldNotLoadRecipes || "Could not load recipes."
+            : t.configureAppwrite || "Configure Appwrite to load saved recipes.",
+        ),
+      );
+  }, [loggedIn, t]);
 
   const filtered = useMemo(
     () =>
@@ -86,24 +85,23 @@ export function RecipeAdmin() {
 
     try {
       // Create session with email and password
-      // This is the current recommended method for Appwrite
       await account.createEmailPasswordSession(email, password);
 
       // Get user details after successful login
       const session = await account.get();
       setUser(session);
       setLoggedIn(true);
-      setNotice("Welcome back! 👋");
+      setNotice(t.welcomeBack || "Welcome back! 👋");
     } catch (error: any) {
       console.error("Auth error:", error);
 
       // Handle specific error cases
       if (error.type === "invalid_credentials") {
-        setNotice("Invalid email or password. Please try again.");
+        setNotice(t.invalidCredentials || "Invalid email or password. Please try again.");
       } else if (error.type === "user_not_found") {
-        setNotice("No account found with this email.");
+        setNotice(t.noAccountFound || "No account found with this email.");
       } else {
-        setNotice(error.message || "Login failed. Please try again.");
+        setNotice(error.message || t.loginFailed || "Login failed. Please try again.");
       }
     } finally {
       setAuthLoading(false);
@@ -117,10 +115,10 @@ export function RecipeAdmin() {
       setLoggedIn(false);
       setUser(null);
       setRecipes([]);
-      setNotice("Logged out successfully.");
+      setNotice(t.loggedOut || "Logged out successfully.");
     } catch (error) {
       console.error("Logout error:", error);
-      setNotice("Logout failed.");
+      setNotice(t.logoutFailed || "Logout failed.");
     }
   };
 
@@ -135,9 +133,9 @@ export function RecipeAdmin() {
       if (appwriteConfigured) await removeRecipe(deleteTarget.id);
       setRecipes((items) => items.filter((item) => item.id !== deleteTarget.id));
       setDeleteTarget(null);
-      setNotice("Recipe deleted.");
+      setNotice(t.recipeDeleted || "Recipe deleted.");
     } catch {
-      setNotice("Delete failed.");
+      setNotice(t.deleteFailed || "Delete failed.");
     }
   };
 
@@ -160,7 +158,7 @@ export function RecipeAdmin() {
       <main className="flex min-h-screen items-center justify-center bg-[#f5f1e8]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d96c45] mx-auto"></div>
-          <p className="mt-4 text-[#6e746d]">Loading...</p>
+          <p className="mt-4 text-[#6e746d]">{t.loading || "Loading..."}</p>
         </div>
       </main>
     );
@@ -187,7 +185,7 @@ export function RecipeAdmin() {
               <input
                 name="email"
                 type="email"
-                placeholder="Email"
+                placeholder={t.email || "Email"}
                 className="w-full rounded-xl border border-[#d9d1c3] bg-white px-4 py-3 pl-10"
                 required
               />
@@ -198,7 +196,7 @@ export function RecipeAdmin() {
               <input
                 name="password"
                 type="password"
-                placeholder="Password"
+                placeholder={t.password || "Password"}
                 className="w-full rounded-xl border border-[#d9d1c3] bg-white px-4 py-3 pl-10"
                 required
                 minLength={8}
@@ -212,7 +210,7 @@ export function RecipeAdmin() {
               disabled={authLoading}
               className="rounded-xl bg-[#26352d] px-4 py-3 font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#3a4a3f] transition-colors"
             >
-              {authLoading ? "Signing in..." : t.signIn}
+              {authLoading ? t.signingIn || "Signing in..." : t.signIn}
             </button>
           </div>
         </form>
@@ -303,17 +301,19 @@ export function RecipeAdmin() {
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#26352d]/45 p-4" role="dialog" aria-modal="true">
           <div className="w-full max-w-md rounded-2xl bg-[#fffdf8] p-6 shadow-2xl">
-            <h2 className="font-serif text-2xl font-semibold">Delete recipe?</h2>
-            <p className="mt-2 text-sm text-[#6e746d]">Are you sure you want to delete "{localizedValue(deleteTarget.title, locale)}"?</p>
+            <h2 className="font-serif text-2xl font-semibold">{t.deleteRecipe || "Delete recipe?"}</h2>
+            <p className="mt-2 text-sm text-[#6e746d]">
+              {t.areYouSureDelete || "Are you sure you want to delete"} "{localizedValue(deleteTarget.title, locale)}"?
+            </p>
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={() => setDeleteTarget(null)}
                 className="rounded-lg border border-[#ded7cb] px-4 py-2 font-semibold hover:bg-[#f5f1e8] transition-colors"
               >
-                No
+                {t.no || "No"}
               </button>
               <button onClick={remove} className="rounded-lg bg-[#b24d2f] px-4 py-2 font-semibold text-white hover:bg-[#8a3d22] transition-colors">
-                Yes, delete
+                {t.yesDelete || "Yes, delete"}
               </button>
             </div>
           </div>

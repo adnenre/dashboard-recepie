@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, ChefHat, Plus, Save, Trash2 } from "lucide-react";
 import { appwriteConfigured } from "@/lib/firebase";
 import { createRecipe, listRecipes, updateRecipe, type Recipe, type RecipeInput } from "@/lib/recipes";
+import { useLocale } from "@/hooks/useLocale"; // Make sure this imports the Zustand version
 
 type FormState = Omit<RecipeInput, "servings"> & { servings: string };
+
 const blank: FormState = {
   title: "",
   description: "",
@@ -27,6 +29,9 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState("");
 
+  // Use the Zustand hook - gets locale from store
+  const { t } = useLocale();
+
   useEffect(() => {
     if (mode === "create") return;
     const cached = sessionStorage.getItem("recep-edit-recipe");
@@ -34,7 +39,7 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
     listRecipes()
       .then((items) => {
         const recipe = items.find((item) => item.id === recipeId) ?? demo;
-        if (!recipe) return setNotice("Recipe not found.");
+        if (!recipe) return setNotice(t.edit_recipeNotFound || "Recipe not found.");
         setForm({
           title: typeof recipe.title === "string" ? recipe.title : "",
           description: typeof recipe.description === "string" ? recipe.description : "",
@@ -51,10 +56,10 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
         });
       })
       .catch(() => {
-        if (!demo) setNotice("Could not load recipe.");
+        if (!demo) setNotice(t.edit_couldNotLoadRecipe || "Could not load recipe.");
       })
       .finally(() => setLoading(false));
-  }, [mode, recipeId]);
+  }, [mode, recipeId, t]);
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm((current) => ({ ...current, [key]: value }));
   const updateList = (key: "ingredients" | "steps", index: number, value: string) =>
@@ -71,7 +76,9 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
-    if (!form.title.trim() || !form.description.trim()) return setNotice("Title and description are required.");
+    if (!form.title.trim() || !form.description.trim()) {
+      return setNotice(t.edit_titleAndDescriptionRequired || "Title and description are required.");
+    }
     setSaving(true);
     const input: RecipeInput = {
       ...form,
@@ -85,11 +92,14 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
     try {
       if (mode === "edit") await updateRecipe(recipeId, input);
       else await createRecipe(input);
-      setNotice(mode === "edit" ? "Recipe updated successfully." : "Recipe created successfully.");
+      setNotice(mode === "edit" ? t.edit_recipeUpdated || "Recipe updated successfully." : t.edit_recipeCreated || "Recipe created successfully.");
       if (mode === "create") setForm(blank);
     } catch {
-      if (!appwriteConfigured) setNotice("Preview mode: configure Appwrite to persist recipes.");
-      else setNotice("Could not save recipe. Check Appwrite collection attributes.");
+      if (!appwriteConfigured) {
+        setNotice(t.edit_previewMode || "Preview mode: configure Appwrite to persist recipes.");
+      } else {
+        setNotice(t.edit_couldNotSave || "Could not save recipe. Check Appwrite collection attributes.");
+      }
     } finally {
       setSaving(false);
     }
@@ -105,7 +115,7 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
           }}
           className="mb-8 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-[#fffdf8]"
         >
-          <ArrowLeft /> Back to recipes
+          <ArrowLeft /> {t.edit_backToRecipes}
         </button>
         <div className="rounded-[1.75rem] border border-[#ded7cb] bg-[#fffdf8] p-6 shadow-sm sm:p-8">
           <div className="mb-8 flex items-center gap-3">
@@ -113,17 +123,17 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
               <ChefHat />
             </span>
             <div>
-              <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#d96c45]">Recipe editor</p>
-              <h1 className="font-serif text-3xl font-semibold">{mode === "edit" ? "Edit recipe" : "New recipe"}</h1>
+              <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#d96c45]">{t.edit_recipeEditor}</p>
+              <h1 className="font-serif text-3xl font-semibold">{mode === "edit" ? t.edit_editRecipe : t.edit_newRecipe}</h1>
             </div>
           </div>
           {loading ? (
-            <p>Loading recipe...</p>
+            <p>{t.edit_loading}</p>
           ) : (
             <form onSubmit={save} className="flex flex-col gap-6">
               <div className="grid gap-5 md:grid-cols-2">
                 <label className="flex flex-col gap-2 text-sm font-medium md:col-span-2">
-                  Recipe title
+                  {t.edit_recipeTitle}
                   <input
                     value={form.title}
                     onChange={(event) => update("title", event.target.value)}
@@ -131,7 +141,7 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
                   />
                 </label>
                 <label className="flex flex-col gap-2 text-sm font-medium md:col-span-2">
-                  Description
+                  {t.edit_description}
                   <textarea
                     value={form.description}
                     onChange={(event) => update("description", event.target.value)}
@@ -140,33 +150,33 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
                   />
                 </label>
                 <label className="flex flex-col gap-2 text-sm font-medium">
-                  Category
+                  {t.edit_category}
                   <select
                     value={form.category}
                     onChange={(event) => update("category", event.target.value)}
                     className="rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
                   >
-                    <option>Breakfast</option>
-                    <option>Lunch</option>
-                    <option>Dinner</option>
-                    <option>Dessert</option>
-                    <option>Drinks</option>
+                    <option value="Breakfast">{t.edit_breakfast}</option>
+                    <option value="Lunch">{t.edit_lunch}</option>
+                    <option value="Dinner">{t.edit_dinner}</option>
+                    <option value="Dessert">{t.edit_dessert}</option>
+                    <option value="Drinks">{t.edit_drinks}</option>
                   </select>
                 </label>
                 <label className="flex flex-col gap-2 text-sm font-medium">
-                  Difficulty
+                  {t.edit_difficulty}
                   <select
                     value={form.difficulty}
                     onChange={(event) => update("difficulty", event.target.value as RecipeInput["difficulty"])}
                     className="rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
                   >
-                    <option>Easy</option>
-                    <option>Medium</option>
-                    <option>Hard</option>
+                    <option value="Easy">{t.edit_easy}</option>
+                    <option value="Medium">{t.edit_medium}</option>
+                    <option value="Hard">{t.edit_hard}</option>
                   </select>
                 </label>
                 <label className="flex flex-col gap-2 text-sm font-medium">
-                  Prep time
+                  {t.edit_prepTime}
                   <input
                     value={form.prepTime}
                     onChange={(event) => update("prepTime", event.target.value)}
@@ -174,7 +184,7 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
                   />
                 </label>
                 <label className="flex flex-col gap-2 text-sm font-medium">
-                  Cook time
+                  {t.edit_cookTime}
                   <input
                     value={form.cookTime}
                     onChange={(event) => update("cookTime", event.target.value)}
@@ -182,7 +192,7 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
                   />
                 </label>
                 <label className="flex flex-col gap-2 text-sm font-medium">
-                  Serves
+                  {t.edit_serves}
                   <input
                     type="number"
                     min="1"
@@ -192,7 +202,7 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
                   />
                 </label>
                 <label className="flex flex-col gap-2 text-sm font-medium md:col-span-2">
-                  Image URL
+                  {t.edit_imageUrl}
                   <input
                     value={form.image}
                     onChange={(event) => update("image", event.target.value)}
@@ -202,13 +212,13 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
               </div>
               <section className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
-                  <h2 className="font-serif text-xl font-semibold">Ingredients</h2>
+                  <h2 className="font-serif text-xl font-semibold">{t.edit_ingredients}</h2>
                   <button
                     type="button"
                     onClick={() => addListItem("ingredients")}
                     className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-[#f1ece3]"
                   >
-                    <Plus /> Add
+                    <Plus /> {t.edit_add}
                   </button>
                 </div>
                 {form.ingredients.map((item, index) => (
@@ -221,7 +231,7 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
                     <button
                       type="button"
                       onClick={() => removeListItem("ingredients", index)}
-                      aria-label="Remove ingredient"
+                      aria-label={t.edit_removeIngredient}
                       className="rounded-lg px-3 text-[#b24d2f] hover:bg-[#f1ece3]"
                     >
                       <Trash2 />
@@ -231,13 +241,13 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
               </section>
               <section className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
-                  <h2 className="font-serif text-xl font-semibold">Steps</h2>
+                  <h2 className="font-serif text-xl font-semibold">{t.edit_steps}</h2>
                   <button
                     type="button"
                     onClick={() => addListItem("steps")}
                     className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-[#f1ece3]"
                   >
-                    <Plus /> Add
+                    <Plus /> {t.edit_add}
                   </button>
                 </div>
                 {form.steps.map((item, index) => (
@@ -251,7 +261,7 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
                     <button
                       type="button"
                       onClick={() => removeListItem("steps", index)}
-                      aria-label="Remove step"
+                      aria-label={t.edit_removeStep}
                       className="rounded-lg px-3 text-[#b24d2f] hover:bg-[#f1ece3]"
                     >
                       <Trash2 />
@@ -260,7 +270,8 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
                 ))}
               </section>
               <label className="flex items-center gap-3 text-sm font-medium">
-                <input type="checkbox" checked={form.featured} onChange={(event) => update("featured", event.target.checked)} /> Feature this recipe
+                <input type="checkbox" checked={form.featured} onChange={(event) => update("featured", event.target.checked)} />
+                {t.edit_featureThisRecipe}
               </label>
               {notice && <p className="text-sm text-[#6e746d]">{notice}</p>}
               <div className="flex justify-end gap-3">
@@ -271,13 +282,13 @@ export function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "cre
                   }}
                   className="rounded-xl border border-[#ded7cb] px-5 py-3 font-semibold"
                 >
-                  Cancel
+                  {t.edit_cancel}
                 </button>
                 <button
                   disabled={saving}
                   className="flex items-center gap-2 rounded-xl bg-[#26352d] px-5 py-3 font-semibold text-white disabled:opacity-60"
                 >
-                  <Save /> {saving ? "Saving..." : mode === "edit" ? "Save changes" : "Create recipe"}
+                  <Save /> {saving ? t.edit_saving : mode === "edit" ? t.edit_saveChanges : t.edit_createRecipe}
                 </button>
               </div>
             </form>
