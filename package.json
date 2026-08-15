@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "clean": "rm -rf .next && rm -rf node_modules/.cache",
+    "vercel-deploy": "npm run clean && vercel --prod --force"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

@@ -1,0 +1,16 @@
+{
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next",
+      "config": {
+        "buildCommand": "npm run build"
+      }
+    }
+  ],
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_CLEAR_CACHE": "true"
+    }
+  }
+}
