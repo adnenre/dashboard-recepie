@@ -1,0 +1,164 @@
+### Variables
+@baseUrl = http://localhost:3000
+@email = admin@gmail.com
+@password = Admin2026
+
+### =========================================================
+### 1. Admin Login
+### =========================================================
+
+POST {{baseUrl}}/api/admin/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+
+### =========================================================
+### 2. Verify Admin Session
+### =========================================================
+
+GET {{baseUrl}}/api/admin/auth/verify
+
+
+### =========================================================
+### 3. List All Recipes
+### =========================================================
+
+GET {{baseUrl}}/api/recipes
+
+
+### =========================================================
+### 4. Create Recipe
+### =========================================================
+
+POST {{baseUrl}}/api/recipes
+Content-Type: application/json
+
+{
+  "title": "Admin Test Recipe",
+  "description": "Recipe created through the API test file.",
+  "image": "",
+  "category": "Test",
+  "prepTime": "10 min",
+  "cookTime": "20 min",
+  "servings": 4,
+  "difficulty": "Easy",
+  "ingredients": [
+    "2 cups flour",
+    "1 cup sugar",
+    "2 eggs"
+  ],
+  "steps": [
+    "Mix the ingredients.",
+    "Pour into a baking dish.",
+    "Bake for 20 minutes."
+  ],
+  "tags": [
+    "test",
+    "admin"
+  ],
+  "featured": false
+}
+
+
+### =========================================================
+### 5. Get One Recipe
+### Replace RECIPE_ID with the $id returned from step 4
+### =========================================================
+
+@recipeId = REPLACE_WITH_RECIPE_ID
+
+GET {{baseUrl}}/api/recipes/{{recipeId}}
+
+
+### =========================================================
+### 6. Update Recipe
+### =========================================================
+
+PUT {{baseUrl}}/api/recipes/{{recipeId}}
+Content-Type: application/json
+
+{
+  "title": "Updated Admin Test Recipe",
+  "description": "This recipe was updated through the API.",
+  "image": "",
+  "category": "Dinner",
+  "prepTime": "15 min",
+  "cookTime": "25 min",
+  "servings": 6,
+  "difficulty": "Medium",
+  "ingredients": [
+    "3 cups flour",
+    "1 cup sugar",
+    "3 eggs",
+    "1 cup milk"
+  ],
+  "steps": [
+    "Mix all ingredients.",
+    "Prepare the baking dish.",
+    "Bake for 25 minutes."
+  ],
+  "tags": [
+    "test",
+    "updated",
+    "admin"
+  ],
+  "featured": true
+}
+
+
+### =========================================================
+### 7. Get Recipe Again
+### Verify that the update worked
+### =========================================================
+
+GET {{baseUrl}}/api/recipes/{{recipeId}}
+
+
+### =========================================================
+### 8. List Recipes Again
+### Verify the updated recipe appears in the list
+### =========================================================
+
+GET {{baseUrl}}/api/recipes
+
+
+### =========================================================
+### 9. Delete Recipe
+### =========================================================
+
+DELETE {{baseUrl}}/api/recipes/{{recipeId}}
+
+
+### =========================================================
+### 10. Verify Recipe Was Deleted
+### Expected: 404 Recipe not found
+### =========================================================
+
+GET {{baseUrl}}/api/recipes/{{recipeId}}
+
+
+### =========================================================
+### 11. Admin Logout
+### =========================================================
+
+POST {{baseUrl}}/api/admin/auth/logout
+
+
+### =========================================================
+### 12. Verify Session After Logout
+### Expected: 401 Authentication required
+### =========================================================
+
+GET {{baseUrl}}/api/admin/auth/verify
+
+
+### =========================================================
+### 13. Try Recipes After Logout
+### Expected: 401 Authentication required
+### =========================================================
+
+GET {{baseUrl}}/api/recipes
