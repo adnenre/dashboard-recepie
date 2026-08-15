@@ -8,7 +8,7 @@ import { appwriteConfigured } from "@/lib/firebase";
 import { localizedValue, type Recipe } from "@/lib/recipes";
 import { localeLabels, type Locale } from "@/lib/i18n";
 import { useAuth } from "@/components/AuthProvider";
-import { useLocale } from "@/hooks/useLocale";
+import { useLocale } from "@/hooks";
 import { authApi, recipeApi } from "@/lib/api-helper";
 
 export function RecipeAdmin() {
