@@ -32,6 +32,9 @@ importers:
       next:
         specifier: 16.3.0
         version: 16.3.0(@babel/core@7.29.7)(@types/node@24.13.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      node-appwrite:
+        specifier: ^28.0.0
+        version: 28.0.0
       react:
         specifier: 19.2.4
         version: 19.2.4
@@ -1435,6 +1438,9 @@ packages:
       sass:
         optional: true
 
+  node-appwrite@28.0.0:
+    resolution: {integrity: sha512-3pLMannNwZf1WUJYdZ998B/ckgAkUGI+Wis31GEwy2NJlx0PooghXe6U3ZJvH86oFaLGl+evnjFWcaQJXu+PZg==}
+
   node-releases@2.0.53:
     resolution: {integrity: sha512-D9UOmYG3UH1V+ENW56t5QXBwJw1YEY18ruVeus89Rw+SyIgjPkCO84bRzO3uNIYosJbNwiabWVn48o3uJLjxFQ==}
     engines: {node: '>=18'}
@@ -1831,6 +1837,10 @@ packages:
 
   undici-types@7.18.2:
     resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
+
+  undici@6.28.0:
+    resolution: {integrity: sha512-LIY910g9TI13YS95lrMFrs8Rm/u/irgHeTWoKCoteeJ04CUJ92eEfj0rVn+7VKMPBpUPiUoBKfhNyLI23EE/KA==}
+    engines: {node: '>=18.17'}
 
   undici@7.29.0:
     resolution: {integrity: sha512-IDxfleLmmbSskfWSUATiN1nfn2rDuvnMOqb5CWR92iIfojA0Ud+ulOAAEQ57LPr9rWmsreUyf5lwyao+7GNNVw==}
@@ -3152,6 +3162,11 @@ snapshots:
       - '@types/node'
       - babel-plugin-macros
 
+  node-appwrite@28.0.0:
+    dependencies:
+      json-bigint: 1.0.0
+      undici: 6.28.0
+
   node-releases@2.0.53: {}
 
   npm-run-path@4.0.1:
@@ -3592,6 +3607,8 @@ snapshots:
   typescript@5.7.3: {}
 
   undici-types@7.18.2: {}
+
+  undici@6.28.0: {}
 
   undici@7.29.0: {}
 
