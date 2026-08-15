@@ -1,66 +1,49 @@
+// components/recipe-admin.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ChefHat, Edit3, LogOut, Plus, Search, Trash2, Mail, Lock } from "lucide-react";
 import { appwriteConfigured } from "@/lib/firebase";
-import { listRecipes, localizedValue, removeRecipe, type Recipe } from "@/lib/recipes";
+import { localizedValue, type Recipe } from "@/lib/recipes";
 import { localeLabels, type Locale } from "@/lib/i18n";
-import { account } from "@/lib/appwrite-auth";
-import { useLocale } from "@/hooks/useLocale"; // Make sure this imports the Zustand version
+import { useAuth } from "@/components/AuthProvider";
+import { useLocale } from "@/hooks/useLocale";
+import { authApi, recipeApi } from "@/lib/api-helper";
 
 export function RecipeAdmin() {
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const auth = useAuth();
+  const { user, loading: authLoading, loggedIn, setUser, setLoggedIn } = auth;
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [queryText, setQueryText] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Recipe | null>(null);
   const [notice, setNotice] = useState("");
-  const [authLoading, setAuthLoading] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
 
-  // Use the Zustand hook - handles all localStorage and SSR issues
   const { locale, setLocale, t } = useLocale();
-
-  // Check auth status on mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // Check if user is already logged in
-        const session = await account.get();
-        setUser(session);
-        setLoggedIn(true);
-      } catch {
-        setLoggedIn(false);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
 
   // Load recipes when logged in
   useEffect(() => {
     if (!loggedIn) return;
-    listRecipes()
+
+    recipeApi
+      .list()
       .then(setRecipes)
-      .catch(() =>
+      .catch((error) => {
+        console.error("Failed to load recipes:", error);
         setNotice(
           appwriteConfigured
             ? t.couldNotLoadRecipes || "Could not load recipes."
             : t.configureAppwrite || "Configure Appwrite to load saved recipes.",
-        ),
-      );
+        );
+      });
   }, [loggedIn, t]);
 
   const filtered = useMemo(
     () =>
       recipes.filter((recipe) => {
-        // Safely get tags as array
         const tagsArray = Array.isArray(recipe.tags) ? recipe.tags : typeof recipe.tags === "string" ? [] : [];
-
-        // Get localized values
         const title = localizedValue(recipe.title, locale) || "";
         const category = localizedValue(recipe.category, locale) || "";
         const tags = tagsArray.map((tag) => (typeof tag === "string" ? tag : "")).join(" ");
@@ -73,10 +56,9 @@ export function RecipeAdmin() {
     [recipes, queryText, locale],
   );
 
-  // Login with Appwrite using email and password
   const login = async (event: React.FormEvent) => {
     event.preventDefault();
-    setAuthLoading(true);
+    setLoginLoading(true);
     setNotice("");
 
     const form = new FormData(event.currentTarget as HTMLFormElement);
@@ -84,34 +66,47 @@ export function RecipeAdmin() {
     const password = form.get("password") as string;
 
     try {
-      // Create session with email and password
-      await account.createEmailPasswordSession(email, password);
+      const result = await authApi.login(email, password);
+      console.log("Login result:", result);
 
-      // Get user details after successful login
-      const session = await account.get();
-      setUser(session);
+      // ✅ Normalize user data to match Appwrite format
+      const normalizedUser = {
+        $id: result.user.id, // Map id to $id (Appwrite format)
+        id: result.user.id, // Keep id as well
+        name: result.user.name,
+        email: result.user.email,
+        labels: result.user.labels || [],
+        isAdmin: result.user.isAdmin,
+      };
+
+      setUser(normalizedUser);
       setLoggedIn(true);
       setNotice(t.welcomeBack || "Welcome back! 👋");
+
+      // Load recipes after login
+      try {
+        const recipes = await recipeApi.list();
+        setRecipes(recipes);
+      } catch (error) {
+        console.error("Failed to load recipes after login:", error);
+      }
     } catch (error: any) {
       console.error("Auth error:", error);
-
-      // Handle specific error cases
-      if (error.type === "invalid_credentials") {
+      if (error.message?.includes("Admin privileges")) {
+        setNotice("Access denied. Admin privileges required.");
+      } else if (error.message?.includes("Invalid email")) {
         setNotice(t.invalidCredentials || "Invalid email or password. Please try again.");
-      } else if (error.type === "user_not_found") {
-        setNotice(t.noAccountFound || "No account found with this email.");
       } else {
         setNotice(error.message || t.loginFailed || "Login failed. Please try again.");
       }
     } finally {
-      setAuthLoading(false);
+      setLoginLoading(false);
     }
   };
 
   const logout = async () => {
     try {
-      // Delete current session
-      await account.deleteSession("current");
+      await authApi.logout();
       setLoggedIn(false);
       setUser(null);
       setRecipes([]);
@@ -124,18 +119,26 @@ export function RecipeAdmin() {
 
   const edit = (recipe: Recipe) => {
     sessionStorage.setItem("recep-edit-recipe", JSON.stringify(recipe));
-    window.location.href = `/recipes/edit?id=${encodeURIComponent(recipe.id)}`;
+    router.push(`/recipes/edit?id=${encodeURIComponent(recipe.id)}`);
   };
 
   const remove = async () => {
     if (!deleteTarget) return;
     try {
-      if (appwriteConfigured) await removeRecipe(deleteTarget.id);
+      await recipeApi.delete(deleteTarget.id);
+
       setRecipes((items) => items.filter((item) => item.id !== deleteTarget.id));
       setDeleteTarget(null);
       setNotice(t.recipeDeleted || "Recipe deleted.");
-    } catch {
-      setNotice(t.deleteFailed || "Delete failed.");
+    } catch (error: any) {
+      console.error("Delete error:", error);
+      if (error.message?.includes("Authentication required") || error.message?.includes("401")) {
+        setNotice("Please log in to delete recipes.");
+      } else if (error.message?.includes("Admin privileges") || error.message?.includes("403")) {
+        setNotice("Admin privileges required to delete recipes.");
+      } else {
+        setNotice(t.deleteFailed || "Delete failed.");
+      }
     }
   };
 
@@ -153,7 +156,7 @@ export function RecipeAdmin() {
   );
 
   // Loading state
-  if (loading) {
+  if (authLoading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f5f1e8]">
         <div className="text-center">
@@ -164,6 +167,7 @@ export function RecipeAdmin() {
     );
   }
 
+  // Login form
   if (!loggedIn) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f5f1e8] px-6 text-[#26352d]">
@@ -207,10 +211,10 @@ export function RecipeAdmin() {
 
             <button
               type="submit"
-              disabled={authLoading}
+              disabled={loginLoading}
               className="rounded-xl bg-[#26352d] px-4 py-3 font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#3a4a3f] transition-colors"
             >
-              {authLoading ? t.signingIn || "Signing in..." : t.signIn}
+              {loginLoading ? t.signingIn || "Signing in..." : t.signIn}
             </button>
           </div>
         </form>
@@ -218,6 +222,7 @@ export function RecipeAdmin() {
     );
   }
 
+  // Admin dashboard
   return (
     <main className="min-h-screen bg-[#f5f1e8] text-[#26352d]">
       <header className="border-b border-[#ded7cb] bg-[#fffdf8]">
@@ -251,7 +256,7 @@ export function RecipeAdmin() {
           </div>
           <button
             onClick={() => {
-              window.location.href = "/recipes/new";
+              router.push("/recipes/new");
             }}
             className="flex items-center justify-center gap-2 rounded-xl bg-[#d96c45] px-5 py-3 font-semibold text-white hover:bg-[#c45a35] transition-colors"
           >
@@ -272,7 +277,7 @@ export function RecipeAdmin() {
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map((recipe) => (
             <article key={recipe.id} className="overflow-hidden rounded-[1.5rem] border border-[#ded7cb] bg-[#fffdf8] shadow-sm">
-              <img src={recipe.image} alt={localizedValue(recipe.title, locale)} className="h-48 w-full object-cover" />
+              <img src={recipe.image || "/placeholder-image.jpg"} alt={localizedValue(recipe.title, locale)} className="h-48 w-full object-cover" />
               <div className="p-5">
                 <p className="mb-2 text-xs uppercase tracking-widest text-[#d96c45]">{localizedValue(recipe.category, locale)}</p>
                 <h3 className="font-serif text-2xl font-semibold">{localizedValue(recipe.title, locale)}</h3>
@@ -322,4 +327,5 @@ export function RecipeAdmin() {
     </main>
   );
 }
+
 export default RecipeAdmin;

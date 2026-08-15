@@ -1,9 +1,11 @@
+// components/RecipeEditorPage.tsx
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, ChefHat, Plus, Save, Trash2 } from "lucide-react";
 import { appwriteConfigured } from "@/lib/firebase";
-import { createRecipe, listRecipes, updateRecipe, type Recipe, type RecipeInput } from "@/lib/recipes";
+import { createRecipe, updateRecipe, listRecipes, type Recipe, type RecipeInput } from "@/lib/recipes";
 import { useLocale } from "@/hooks/useLocale";
 
 type FormState = Omit<RecipeInput, "servings"> & { servings: string };
@@ -24,22 +26,30 @@ const blank: FormState = {
 };
 
 function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | "edit"; recipeId?: string }) {
+  const router = useRouter();
   const [form, setForm] = useState<FormState>(blank);
   const [loading, setLoading] = useState(mode === "edit");
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState("");
 
-  // Use the Zustand hook - gets locale from store
   const { t } = useLocale();
 
   useEffect(() => {
-    if (mode === "create") return;
+    if (mode === "create") {
+      setLoading(false);
+      return;
+    }
+
     const cached = sessionStorage.getItem("recep-edit-recipe");
     const demo = cached ? (JSON.parse(cached) as Recipe) : null;
+
     listRecipes()
-      .then((items) => {
-        const recipe = items.find((item) => item.id === recipeId) ?? demo;
-        if (!recipe) return setNotice(t.edit_recipeNotFound || "Recipe not found.");
+      .then((recipes) => {
+        const recipe = recipes.find((item) => item.id === recipeId) ?? demo;
+        if (!recipe) {
+          setNotice(t.edit_recipeNotFound || "Recipe not found.");
+          return;
+        }
         setForm({
           title: typeof recipe.title === "string" ? recipe.title : "",
           description: typeof recipe.description === "string" ? recipe.description : "",
@@ -54,11 +64,30 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
           tags: Array.isArray(recipe.tags) ? recipe.tags : [],
           featured: Boolean(recipe.featured),
         });
+        setLoading(false);
       })
-      .catch(() => {
-        if (!demo) setNotice(t.edit_couldNotLoadRecipe || "Could not load recipe.");
-      })
-      .finally(() => setLoading(false));
+      .catch((error) => {
+        console.error("Failed to load recipe:", error);
+        if (demo) {
+          setForm({
+            title: typeof demo.title === "string" ? demo.title : "",
+            description: typeof demo.description === "string" ? demo.description : "",
+            image: demo.image ?? "",
+            category: typeof demo.category === "string" ? demo.category : "Dinner",
+            prepTime: typeof demo.prepTime === "string" ? demo.prepTime : "",
+            cookTime: typeof demo.cookTime === "string" ? demo.cookTime : "",
+            servings: String(demo.servings ?? 1),
+            difficulty: demo.difficulty ?? "Easy",
+            ingredients: Array.isArray(demo.ingredients) && demo.ingredients.length ? demo.ingredients : [""],
+            steps: Array.isArray(demo.steps) && demo.steps.length ? demo.steps : [""],
+            tags: Array.isArray(demo.tags) ? demo.tags : [],
+            featured: Boolean(demo.featured),
+          });
+        } else {
+          setNotice(t.edit_couldNotLoadRecipe || "Could not load recipe.");
+        }
+        setLoading(false);
+      });
   }, [mode, recipeId, t]);
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm((current) => ({ ...current, [key]: value }));
@@ -80,6 +109,8 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
       return setNotice(t.edit_titleAndDescriptionRequired || "Title and description are required.");
     }
     setSaving(true);
+    setNotice("");
+
     const input: RecipeInput = {
       ...form,
       title: form.title.trim(),
@@ -89,16 +120,27 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
       steps: form.steps.filter(Boolean),
       tags: form.tags,
     };
+
     try {
-      if (mode === "edit") await updateRecipe(recipeId, input);
-      else await createRecipe(input);
-      setNotice(mode === "edit" ? t.edit_recipeUpdated || "Recipe updated successfully." : t.edit_recipeCreated || "Recipe created successfully.");
-      if (mode === "create") setForm(blank);
-    } catch {
-      if (!appwriteConfigured) {
+      if (mode === "edit") {
+        await updateRecipe(recipeId, input);
+        setNotice(t.edit_recipeUpdated || "Recipe updated successfully.");
+      } else {
+        await createRecipe(input);
+        setNotice(t.edit_recipeCreated || "Recipe created successfully.");
+        if (mode === "create") setForm(blank);
+      }
+    } catch (error: any) {
+      console.error("Save error:", error);
+
+      if (error.message?.includes("Authentication required") || error.message?.includes("401")) {
+        setNotice("Please log in to save recipes.");
+      } else if (error.message?.includes("Admin privileges required") || error.message?.includes("403")) {
+        setNotice("Admin privileges required to save recipes.");
+      } else if (!appwriteConfigured) {
         setNotice(t.edit_previewMode || "Preview mode: configure Appwrite to persist recipes.");
       } else {
-        setNotice(t.edit_couldNotSave || "Could not save recipe. Check Appwrite collection attributes.");
+        setNotice(error.message || t.edit_couldNotSave || "Could not save recipe. Check Appwrite collection attributes.");
       }
     } finally {
       setSaving(false);
@@ -110,9 +152,7 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
       <div className="mx-auto max-w-4xl">
         <button
           type="button"
-          onClick={() => {
-            window.location.href = "/";
-          }}
+          onClick={() => router.push("/")}
           className="mb-8 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-[#fffdf8]"
         >
           <ArrowLeft /> {t.edit_backToRecipes}
@@ -273,20 +313,14 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
                 <input type="checkbox" checked={form.featured} onChange={(event) => update("featured", event.target.checked)} />
                 {t.edit_featureThisRecipe}
               </label>
-              {notice && <p className="text-sm text-[#6e746d]">{notice}</p>}
+              {notice && <p className={`text-sm ${notice.includes("success") ? "text-green-600" : "text-[#b24d2f]"}`}>{notice}</p>}
               <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    window.location.href = "/";
-                  }}
-                  className="rounded-xl border border-[#ded7cb] px-5 py-3 font-semibold"
-                >
+                <button type="button" onClick={() => router.push("/")} className="rounded-xl border border-[#ded7cb] px-5 py-3 font-semibold">
                   {t.edit_cancel}
                 </button>
                 <button
                   disabled={saving}
-                  className="flex items-center gap-2 rounded-xl bg-[#26352d] px-5 py-3 font-semibold text-white disabled:opacity-60"
+                  className="flex items-center gap-2 rounded-xl bg-[#26352d] px-5 py-3 font-semibold text-white disabled:opacity-60 hover:bg-[#3a4a3f] transition-colors"
                 >
                   <Save /> {saving ? t.edit_saving : mode === "edit" ? t.edit_saveChanges : t.edit_createRecipe}
                 </button>
@@ -298,4 +332,5 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
     </main>
   );
 }
+
 export default RecipeEditorPage;

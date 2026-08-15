@@ -1,4 +1,6 @@
 // lib/appwrite-auth.ts
+// ⚠️ This file is CLIENT-ONLY - Import only in client components
+
 import { Client, Account, ID } from "appwrite";
 
 const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "";
@@ -14,5 +16,5 @@ if (appwriteConfigured) {
 
 export const account = new Account(client);
 
-// Re-export ID for use in other files
+// ✅ Re-export ID for use in other files
 export { ID };
