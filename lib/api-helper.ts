@@ -119,6 +119,19 @@ export const recipeApi = {
     }>(`/recipes/${id}`, {
       method: "DELETE",
     }),
+
+  // Batch update featured status - ONE CALL with all recipes
+  batchUpdateFeatured: (recipes: Array<{ id: string; featured: boolean }>) =>
+    apiCall<{
+      success: boolean;
+      message: string;
+      updatedCount: number;
+      featuredRecipe: { id: string; featured: boolean } | null;
+      featuredCount: number;
+    }>("/recipes/batch-feature", {
+      method: "POST",
+      body: JSON.stringify({ recipes }),
+    }),
 };
 
 // ============================================================
