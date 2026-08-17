@@ -1,0 +1,234 @@
+### Variables
+@baseUrl = http://localhost:3000
+@email = admin@gmail.com
+@password = Admin2026
+
+### ============================================
+### ADMIN AUTHENTICATION
+### ============================================
+
+### 1. Admin Login
+# @name adminLogin
+POST {{baseUrl}}/api/admin/auth/login
+Content-Type: application/json
+
+{
+  "email": "adnen.rebai@gmail.com",
+  "password": "Admin2026$"
+}
+
+### 2. Verify Admin Session
+GET {{baseUrl}}/api/admin/auth/verify
+Accept: application/json
+
+### 3. Admin Logout
+POST {{baseUrl}}/api/admin/auth/logout
+Content-Type: application/json
+
+### ============================================
+### RECIPE CRUD OPERATIONS (Requires Admin Auth)
+### ============================================
+
+### 4. GET ALL RECIPES (Public - no auth required)
+GET {{baseUrl}}/api/recipes
+Accept: application/json
+
+### 5. CREATE A NEW RECIPE (Requires admin authentication)
+# @name createRecipe
+POST {{baseUrl}}/api/recipes
+Content-Type: application/json
+
+{
+  "title": "Crème Brûlée à la Vanille",
+  "category": "Desserts",
+  "time": "40 min",
+  "timeMin": 40,
+  "servings": 4,
+  "difficulty": "Facile",
+  "methods": ["four"],
+  "image": "https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?w=800&h=600&fit=crop&auto=format",
+  "description": "Une crème onctueuse parfumée à la vanille de Madagascar, coiffée d'un caramel craquant.",
+  "ingredients": [
+    { "qty": 500, "unit": "ml", "name": "crème" },
+    { "qty": 5, "unit": "pcs", "name": "œufs" },
+    { "qty": 80, "unit": "g", "name": "sucre" },
+    { "qty": 1, "unit": "gousse", "name": "vanille" },
+    { "qty": 4, "unit": "c.s.", "name": "cassonade" }
+  ],
+  "steps": [
+    "Préchauffez le four à 150 °C. Fendez la gousse de vanille et grattez les grains.",
+    "Faites chauffer la crème avec la vanille jusqu'à frémissement, retirez du feu.",
+    "Fouettez les jaunes avec le sucre jusqu'à blanchiment. Versez la crème chaude en filet.",
+    "Filtrez et répartissez dans des ramequins. Enfournez au bain-marie 30 min.",
+    "Laissez refroidir puis réfrigérez au moins 3 heures.",
+    "Au moment de servir, saupoudrez de cassonade et brûlez au chalumeau."
+  ],
+  "tags": ["Classique", "Vanille", "Festif"]
+}
+
+### After creating, copy the ID from the response and update below
+# @recipeId = copied_id_from_response
+
+### 6. GET SINGLE RECIPE (Public - no auth required)
+GET {{baseUrl}}/api/recipes/{{recipeId}}
+Accept: application/json
+
+### 7. UPDATE RECIPE (Requires admin authentication)
+PUT {{baseUrl}}/api/recipes/{{recipeId}}
+Content-Type: application/json
+
+{
+  "title": "Crème Brûlée à la Vanille (Updated)",
+  "category": "Desserts",
+  "time": "45 min",
+  "timeMin": 45,
+  "servings": 6,
+  "difficulty": "Facile",
+  "methods": ["four"],
+  "image": "https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?w=800&h=600&fit=crop&auto=format",
+  "description": "Une crème onctueuse parfumée à la vanille de Madagascar, coiffée d'un caramel craquant.",
+  "ingredients": [
+    { "qty": 600, "unit": "ml", "name": "crème" },
+    { "qty": 6, "unit": "pcs", "name": "œufs" },
+    { "qty": 100, "unit": "g", "name": "sucre" },
+    { "qty": 2, "unit": "gousse", "name": "vanille" },
+    { "qty": 6, "unit": "c.s.", "name": "cassonade" }
+  ],
+  "steps": [
+    "Préchauffez le four à 150 °C. Fendez les gousses de vanille et grattez les grains.",
+    "Faites chauffer la crème avec la vanille jusqu'à frémissement, retirez du feu.",
+    "Fouettez les jaunes avec le sucre jusqu'à blanchiment. Versez la crème chaude en filet.",
+    "Filtrez et répartissez dans des ramequins. Enfournez au bain-marie 30 min.",
+    "Laissez refroidir puis réfrigérez au moins 3 heures.",
+    "Au moment de servir, saupoudrez de cassonade et brûlez au chalumeau."
+  ],
+  "tags": ["Classique", "Vanille", "Festif", "Crémeux"]
+}
+
+### 8. DELETE RECIPE (Requires admin authentication)
+DELETE {{baseUrl}}/api/recipes/{{recipeId}}
+Accept: application/json
+
+### ============================================
+### TEST ERROR CASES
+### ============================================
+
+### 9. Test login with wrong password
+POST {{baseUrl}}/api/admin/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "WrongPassword123"
+}
+
+### 10. Test accessing admin route without authentication
+# Clear cookies or use a new session before running this
+GET {{baseUrl}}/api/admin/auth/verify
+Accept: application/json
+
+### 11. Test creating recipe without authentication
+# Clear cookies or use a new session before running this
+POST {{baseUrl}}/api/recipes
+Content-Type: application/json
+
+{
+  "title": "Test Recipe Without Auth",
+  "category": "Test"
+}
+
+### 12. Test recipe not found
+GET {{baseUrl}}/api/recipes/invalid-id-123
+Accept: application/json
+
+### 13. Test updating non-existent recipe
+PUT {{baseUrl}}/api/recipes/invalid-id-123
+Content-Type: application/json
+
+{
+  "title": "This should fail"
+}
+
+### 14. Test deleting non-existent recipe
+DELETE {{baseUrl}}/api/recipes/invalid-id-123
+Accept: application/json
+
+### ============================================
+### COMPLETE WORKFLOW EXAMPLE
+### ============================================
+
+### Step 1: Admin Login
+POST {{baseUrl}}/api/admin/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Step 2: Verify admin status
+GET {{baseUrl}}/api/admin/auth/verify
+Accept: application/json
+
+### Step 3: Create a recipe (admin required)
+POST {{baseUrl}}/api/recipes
+Content-Type: application/json
+
+{
+  "title": "Pâtes Carbonara",
+  "category": "Plats",
+  "time": "20 min",
+  "timeMin": 20,
+  "servings": 4,
+  "difficulty": "Facile",
+  "methods": ["casserole", "poêle"],
+  "image": "https://images.unsplash.com/photo-1612874742237-6526221588e3?w=800&h=600&fit=crop&auto=format",
+  "description": "Pâtes à la sauce carbonara traditionnelle",
+  "ingredients": [
+    { "qty": 400, "unit": "g", "name": "spaghetti" },
+    { "qty": 150, "unit": "g", "name": "pancetta" },
+    { "qty": 3, "unit": "pcs", "name": "œufs" },
+    { "qty": 100, "unit": "g", "name": "parmesan" }
+  ],
+  "steps": [
+    "Cuire les pâtes al dente dans de l'eau salée",
+    "Faire revenir la pancetta dans une poêle",
+    "Mélanger les œufs avec le parmesan",
+    "Assembler hors du feu et poivrer généreusement"
+  ],
+  "tags": ["Italien", "Pâtes", "Classique"]
+}
+
+### Step 4: Copy the recipe ID from the response
+# @newRecipeId = copied_id_from_response
+
+### Step 5: View the created recipe
+GET {{baseUrl}}/api/recipes/{{newRecipeId}}
+Accept: application/json
+
+### Step 6: Update the recipe
+PUT {{baseUrl}}/api/recipes/{{newRecipeId}}
+Content-Type: application/json
+
+{
+  "title": "Pâtes Carbonara (Améliorée)",
+  "description": "Pâtes à la sauce carbonara avec une touche de poivre noir",
+  "difficulty": "Moyen"
+}
+
+### Step 7: Delete the recipe
+DELETE {{baseUrl}}/api/recipes/{{newRecipeId}}
+Accept: application/json
+
+### Step 8: Admin Logout
+POST {{baseUrl}}/api/admin/auth/logout
+Content-Type: application/json
+
+### Step 9: Try to create recipe after logout (should fail)
+POST {{baseUrl}}/api/recipes
+Content-Type: application/json
+
+{
+  "title": "This should fail after logout",
+  "category": "Test"
+}

@@ -5,11 +5,12 @@ import { ID } from "node-appwrite";
 
 import { createAdminClient } from "@/lib/appwrite-admin";
 import { verifyAdmin } from "@/lib/admin-auth";
+import { type Ingredient, type Step, type Recipe } from "@/lib/recipes";
 
 export const dynamic = "force-dynamic";
 
 // ============================================================
-// Helpers
+// Helper Functions
 // ============================================================
 
 function stringifyJson(value: unknown): string {
@@ -22,72 +23,6 @@ function stringifyJson(value: unknown): string {
   }
 
   return JSON.stringify(value);
-}
-
-function parseArray(value: unknown): string[] {
-  if (value === null || value === undefined) {
-    return [];
-  }
-
-  if (Array.isArray(value)) {
-    return value.map(String);
-  }
-
-  if (typeof value !== "string") {
-    return [];
-  }
-
-  try {
-    const parsed = JSON.parse(value);
-
-    return Array.isArray(parsed) ? parsed.map(String) : [];
-  } catch {
-    try {
-      const cleaned = value.replace(/\\"/g, '"').replace(/\\\\/g, "\\");
-
-      const parsed = JSON.parse(cleaned);
-
-      return Array.isArray(parsed) ? parsed.map(String) : [];
-    } catch {
-      return [];
-    }
-  }
-}
-
-function parseObject<T>(value: unknown, fallback: T = {} as T): T {
-  if (value === null || value === undefined) {
-    return fallback;
-  }
-
-  if (typeof value === "object" && !Array.isArray(value)) {
-    return value as T;
-  }
-
-  if (typeof value !== "string") {
-    return fallback;
-  }
-
-  try {
-    const parsed = JSON.parse(value);
-
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      return parsed as T;
-    }
-  } catch {
-    try {
-      const cleaned = value.replace(/\\"/g, '"').replace(/\\\\/g, "\\");
-
-      const parsed = JSON.parse(cleaned);
-
-      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-        return parsed as T;
-      }
-    } catch {
-      // Ignore.
-    }
-  }
-
-  return fallback;
 }
 
 function getString(value: unknown): string {
@@ -148,33 +83,208 @@ function cleanImageUrl(value: unknown): string {
   return "";
 }
 
+function parseObject<T>(value: unknown, fallback: T = {} as T): T {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+
+  if (typeof value === "object" && !Array.isArray(value)) {
+    return value as T;
+  }
+
+  if (typeof value !== "string") {
+    return fallback;
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed as T;
+    }
+  } catch {
+    try {
+      const cleaned = value.replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+
+      const parsed = JSON.parse(cleaned);
+
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return parsed as T;
+      }
+    } catch {
+      // Ignore.
+    }
+  }
+
+  return fallback;
+}
+
 // ============================================================
-// Normalize
+// Parse ingredients as objects (not strings)
 // ============================================================
 
-function normalizeRecipe(id: string, data: Record<string, unknown>) {
+function parseIngredients(value: unknown): Ingredient[] {
+  if (value === null || value === undefined) {
+    return [];
+  }
+
+  // If it's already an array of objects
+  if (Array.isArray(value)) {
+    return value
+      .filter((item) => item !== null && item !== undefined)
+      .map((item) => {
+        // If item is already an Ingredient object
+        if (typeof item === "object" && item !== null && "name" in item) {
+          return {
+            name: String(item.name || ""),
+            grams: typeof item.grams === "number" ? item.grams : 0,
+            unit: String(item.unit || "g"),
+          };
+        }
+        // If item is a string, try to parse it
+        if (typeof item === "string") {
+          try {
+            const parsed = JSON.parse(item);
+            if (parsed && typeof parsed === "object" && "name" in parsed) {
+              return {
+                name: String(parsed.name || ""),
+                grams: typeof parsed.grams === "number" ? parsed.grams : 0,
+                unit: String(parsed.unit || "g"),
+              };
+            }
+          } catch {
+            // Not a JSON string, ignore
+          }
+        }
+        // Default fallback
+        return { name: String(item), grams: 0, unit: "g" };
+      });
+  }
+
+  // If it's a string, try to parse it
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return parseIngredients(parsed);
+      }
+    } catch {
+      // Not a JSON string
+    }
+  }
+
+  return [];
+}
+
+// ============================================================
+// Parse steps as objects (not strings)
+// ============================================================
+
+function parseSteps(value: unknown): Step[] {
+  if (value === null || value === undefined) {
+    return [];
+  }
+
+  // If it's already an array of objects
+  if (Array.isArray(value)) {
+    return value
+      .filter((item) => item !== null && item !== undefined)
+      .map((item) => {
+        // If item is already a Step object
+        if (typeof item === "object" && item !== null && "text" in item) {
+          return {
+            text: String(item.text || ""),
+            cooking: typeof item.cooking === "boolean" ? item.cooking : false,
+            timerMin: typeof item.timerMin === "number" ? item.timerMin : 0,
+          };
+        }
+        // If item is a string, try to parse it
+        if (typeof item === "string") {
+          try {
+            const parsed = JSON.parse(item);
+            if (parsed && typeof parsed === "object" && "text" in parsed) {
+              return {
+                text: String(parsed.text || ""),
+                cooking: typeof parsed.cooking === "boolean" ? parsed.cooking : false,
+                timerMin: typeof parsed.timerMin === "number" ? parsed.timerMin : 0,
+              };
+            }
+          } catch {
+            // Not a JSON string, ignore
+          }
+        }
+        // Default fallback
+        return { text: String(item), cooking: false, timerMin: 0 };
+      });
+  }
+
+  // If it's a string, try to parse it
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return parseSteps(parsed);
+      }
+    } catch {
+      // Not a JSON string
+    }
+  }
+
+  return [];
+}
+
+// ============================================================
+// Parse tags as strings
+// ============================================================
+
+function parseTags(value: unknown): string[] {
+  if (value === null || value === undefined) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.filter((item) => item !== null && item !== undefined).map((item) => String(item));
+  }
+
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return parsed.map((item) => String(item));
+      }
+    } catch {
+      // Not a JSON string
+    }
+  }
+
+  return [];
+}
+
+// ============================================================
+// Normalize recipe - handles objects correctly
+// ============================================================
+
+function normalizeRecipe(id: string, data: Record<string, unknown>): Recipe {
   return {
     id,
-
     title: getString(data.title),
     description: getString(data.description),
     image: cleanImageUrl(data.image),
-
     category: getString(data.category),
-
     prepTime: getString(data.prepTime),
     cookTime: getString(data.cookTime),
-
+    time: getString(data.time),
+    duration: getString(data.duration),
+    durationMin: getString(data.durationMin),
     servings: getNumber(data.servings),
-
     difficulty: data.difficulty === "Medium" || data.difficulty === "Hard" ? data.difficulty : "Easy",
 
-    ingredients: parseArray(data.ingredients),
-    steps: parseArray(data.steps),
-    tags: parseArray(data.tags),
+    // Parse as objects, not strings
+    ingredients: parseIngredients(data.ingredients),
+    steps: parseSteps(data.steps),
+    tags: parseTags(data.tags),
 
     featured: getBoolean(data.featured),
-
     titleLocales: parseObject(data.titleLocales),
     descriptionLocales: parseObject(data.descriptionLocales),
     categoryLocales: parseObject(data.categoryLocales),
@@ -187,47 +297,36 @@ function normalizeRecipe(id: string, data: Record<string, unknown>) {
 }
 
 // ============================================================
-// Prepare
+// Prepare recipe for database (stringify arrays)
 // ============================================================
 
 function prepareRecipeForDB(input: Record<string, any>) {
   return {
     title: input.title,
     description: input.description,
-
     image: input.image ?? "",
-
     category: input.category,
-
     prepTime: input.prepTime ?? "",
     cookTime: input.cookTime ?? "",
-
+    time: input.time ?? "",
+    duration: input.duration ?? "",
+    durationMin: input.durationMin ?? "",
     servings: input.servings ?? 1,
-
     difficulty: input.difficulty ?? "Easy",
 
+    // Stringify arrays for Appwrite
     ingredients: stringifyJson(input.ingredients ?? []),
-
     steps: stringifyJson(input.steps ?? []),
-
     tags: stringifyJson(input.tags ?? []),
 
     featured: Boolean(input.featured),
-
     titleLocales: stringifyJson(input.titleLocales ?? {}),
-
     descriptionLocales: stringifyJson(input.descriptionLocales ?? {}),
-
     categoryLocales: stringifyJson(input.categoryLocales ?? {}),
-
     prepTimeLocales: stringifyJson(input.prepTimeLocales ?? {}),
-
     cookTimeLocales: stringifyJson(input.cookTimeLocales ?? {}),
-
     ingredientsLocales: stringifyJson(input.ingredientsLocales ?? {}),
-
     stepsLocales: stringifyJson(input.stepsLocales ?? {}),
-
     tagsLocales: stringifyJson(input.tagsLocales ?? {}),
   };
 }
@@ -359,6 +458,151 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 },
     );
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
+
+// ============================================================
+// PUT /api/recipes - Full update
+// ============================================================
+
+export async function PUT(request: NextRequest) {
+  try {
+    const admin = await verifyAdmin(request);
+
+    console.log(`✅ Admin verified: ${admin.email}`);
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Recipe ID is required" }, { status: 400 });
+    }
+
+    let body: Record<string, any>;
+
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
+
+    const { tablesDB, databaseId, tableId } = createAdminClient();
+
+    const prepared = prepareRecipeForDB(body);
+
+    const result = await tablesDB.updateRow({
+      databaseId,
+      tableId,
+      rowId: id,
+      data: prepared,
+    });
+
+    const recipe = normalizeRecipe(result.$id, result);
+
+    return NextResponse.json({
+      success: true,
+      message: "Recipe updated successfully",
+      recipe,
+    });
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
+
+// ============================================================
+// PATCH /api/recipes - Partial update
+// ============================================================
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const admin = await verifyAdmin(request);
+
+    console.log(`✅ Admin verified: ${admin.email}`);
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Recipe ID is required" }, { status: 400 });
+    }
+
+    let body: Record<string, any>;
+
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
+
+    const { tablesDB, databaseId, tableId } = createAdminClient();
+
+    // Get existing recipe
+    const existing = await tablesDB.getRow({
+      databaseId,
+      tableId,
+      rowId: id,
+    });
+
+    // Merge with existing data
+    const mergedData = {
+      ...existing,
+      ...body,
+      // Stringify arrays if provided
+      ingredients: body.ingredients ? stringifyJson(body.ingredients) : existing.ingredients,
+      steps: body.steps ? stringifyJson(body.steps) : existing.steps,
+      tags: body.tags ? stringifyJson(body.tags) : existing.tags,
+    };
+
+    const result = await tablesDB.updateRow({
+      databaseId,
+      tableId,
+      rowId: id,
+      data: mergedData,
+    });
+
+    const recipe = normalizeRecipe(result.$id, result);
+
+    return NextResponse.json({
+      success: true,
+      message: "Recipe updated successfully",
+      recipe,
+    });
+  } catch (error) {
+    return errorResponse(error);
+  }
+}
+
+// ============================================================
+// DELETE /api/recipes
+// ============================================================
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const admin = await verifyAdmin(request);
+
+    console.log(`✅ Admin verified: ${admin.email}`);
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Recipe ID is required" }, { status: 400 });
+    }
+
+    const { tablesDB, databaseId, tableId } = createAdminClient();
+
+    await tablesDB.deleteRow({
+      databaseId,
+      tableId,
+      rowId: id,
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Recipe deleted successfully",
+    });
   } catch (error) {
     return errorResponse(error);
   }

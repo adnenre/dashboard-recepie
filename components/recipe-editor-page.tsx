@@ -3,13 +3,40 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ChefHat, Plus, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, ChefHat, Plus, Save, Trash2, Timer } from "lucide-react";
 import { appwriteConfigured } from "@/lib/firebase";
-import { createRecipe, updateRecipe, listRecipes, type Recipe, type RecipeInput } from "@/lib/recipes";
+import {
+  createRecipe,
+  updateRecipe,
+  listRecipes,
+  batchUpdateFeatured,
+  type Recipe,
+  type RecipeInput,
+  type Ingredient,
+  type Step,
+} from "@/lib/recipes";
 import { useLocale } from "@/hooks";
 
-type FormState = Omit<RecipeInput, "servings"> & { servings: string };
+// Form state with Ingredient and Step objects
+type FormState = {
+  title: string;
+  description: string;
+  image: string;
+  category: string;
+  prepTime: string;
+  cookTime: string;
+  time: string;
+  duration: string;
+  durationMin: string;
+  servings: string;
+  difficulty: "Easy" | "Medium" | "Hard";
+  ingredients: Ingredient[];
+  steps: Step[];
+  tags: string[];
+  featured: boolean;
+};
 
+// Blank state with proper object structure
 const blank: FormState = {
   title: "",
   description: "",
@@ -17,10 +44,13 @@ const blank: FormState = {
   category: "Breakfast",
   prepTime: "",
   cookTime: "",
+  time: "",
+  duration: "",
+  durationMin: "",
   servings: "2",
   difficulty: "Easy",
-  ingredients: [""],
-  steps: [""],
+  ingredients: [{ name: "", grams: 0, unit: "g" }],
+  steps: [{ text: "", cooking: false, timerMin: 0 }],
   tags: [],
   featured: false,
 };
@@ -31,6 +61,7 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
   const [loading, setLoading] = useState(mode === "edit");
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState("");
+  const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
 
   const { t } = useLocale();
 
@@ -45,6 +76,7 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
 
     listRecipes()
       .then((recipes) => {
+        setAllRecipes(recipes);
         const recipe = recipes.find((item) => item.id === recipeId) ?? demo;
         if (!recipe) {
           setNotice(t.edit_recipeNotFound || "Recipe not found.");
@@ -57,10 +89,13 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
           category: typeof recipe.category === "string" ? recipe.category : "Dinner",
           prepTime: typeof recipe.prepTime === "string" ? recipe.prepTime : "",
           cookTime: typeof recipe.cookTime === "string" ? recipe.cookTime : "",
+          time: typeof recipe.time === "string" ? recipe.time : "",
+          duration: typeof recipe.duration === "string" ? recipe.duration : "",
+          durationMin: typeof recipe.durationMin === "string" ? recipe.durationMin : "",
           servings: String(recipe.servings ?? 1),
           difficulty: recipe.difficulty ?? "Easy",
-          ingredients: Array.isArray(recipe.ingredients) && recipe.ingredients.length ? recipe.ingredients : [""],
-          steps: Array.isArray(recipe.steps) && recipe.steps.length ? recipe.steps : [""],
+          ingredients: Array.isArray(recipe.ingredients) && recipe.ingredients.length ? recipe.ingredients : [{ name: "", grams: 0, unit: "g" }],
+          steps: Array.isArray(recipe.steps) && recipe.steps.length ? recipe.steps : [{ text: "", cooking: false, timerMin: 0 }],
           tags: Array.isArray(recipe.tags) ? recipe.tags : [],
           featured: Boolean(recipe.featured),
         });
@@ -76,10 +111,13 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
             category: typeof demo.category === "string" ? demo.category : "Dinner",
             prepTime: typeof demo.prepTime === "string" ? demo.prepTime : "",
             cookTime: typeof demo.cookTime === "string" ? demo.cookTime : "",
+            time: typeof demo.time === "string" ? demo.time : "",
+            duration: typeof demo.duration === "string" ? demo.duration : "",
+            durationMin: typeof demo.durationMin === "string" ? demo.durationMin : "",
             servings: String(demo.servings ?? 1),
             difficulty: demo.difficulty ?? "Easy",
-            ingredients: Array.isArray(demo.ingredients) && demo.ingredients.length ? demo.ingredients : [""],
-            steps: Array.isArray(demo.steps) && demo.steps.length ? demo.steps : [""],
+            ingredients: Array.isArray(demo.ingredients) && demo.ingredients.length ? demo.ingredients : [{ name: "", grams: 0, unit: "g" }],
+            steps: Array.isArray(demo.steps) && demo.steps.length ? demo.steps : [{ text: "", cooking: false, timerMin: 0 }],
             tags: Array.isArray(demo.tags) ? demo.tags : [],
             featured: Boolean(demo.featured),
           });
@@ -91,41 +129,169 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
   }, [mode, recipeId, t]);
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm((current) => ({ ...current, [key]: value }));
-  const updateList = (key: "ingredients" | "steps", index: number, value: string) =>
+
+  // ✅ Ingredient handlers - adds all 3 fields together
+  const updateIngredient = (index: number, field: keyof Ingredient, value: string | number) => {
+    const newIngredients = [...form.ingredients];
+    newIngredients[index] = { ...newIngredients[index], [field]: value };
+    update("ingredients", newIngredients);
+  };
+
+  // ✅ Adds a complete ingredient with all 3 fields
+  const addIngredient = () => {
+    update("ingredients", [
+      ...form.ingredients,
+      {
+        name: "",
+        grams: 0,
+        unit: "g",
+      },
+    ]);
+  };
+
+  const removeIngredient = (index: number) => {
+    if (form.ingredients.length <= 1) {
+      setNotice(t.edit_needIngredient || "You need at least one ingredient.");
+      return;
+    }
     update(
-      key,
-      form[key].map((item, itemIndex) => (itemIndex === index ? value : item)),
+      "ingredients",
+      form.ingredients.filter((_, i) => i !== index),
     );
-  const addListItem = (key: "ingredients" | "steps") => update(key, [...form[key], ""]);
-  const removeListItem = (key: "ingredients" | "steps", index: number) =>
+  };
+
+  // ✅ Step handlers - adds all 3 fields together
+  const updateStep = (index: number, field: keyof Step, value: string | number | boolean) => {
+    const newSteps = [...form.steps];
+    newSteps[index] = { ...newSteps[index], [field]: value };
+    update("steps", newSteps);
+  };
+
+  // ✅ Adds a complete step with all 3 fields
+  const addStep = () => {
+    update("steps", [
+      ...form.steps,
+      {
+        text: "",
+        cooking: false,
+        timerMin: 0,
+      },
+    ]);
+  };
+
+  const removeStep = (index: number) => {
+    if (form.steps.length <= 1) {
+      setNotice(t.edit_needStep || "You need at least one step.");
+      return;
+    }
     update(
-      key,
-      form[key].filter((_, itemIndex) => itemIndex !== index),
+      "steps",
+      form.steps.filter((_, i) => i !== index),
     );
+  };
+
+  // Tag handlers
+  const addTag = () => {
+    update("tags", [...form.tags, ""]);
+  };
+
+  const updateTag = (index: number, value: string) => {
+    const newTags = [...form.tags];
+    newTags[index] = value;
+    update("tags", newTags);
+  };
+
+  const removeTag = (index: number) => {
+    update(
+      "tags",
+      form.tags.filter((_, i) => i !== index),
+    );
+  };
 
   async function save(event: React.FormEvent) {
     event.preventDefault();
+
+    // Validate title and description
     if (!form.title.trim() || !form.description.trim()) {
       return setNotice(t.edit_titleAndDescriptionRequired || "Title and description are required.");
     }
+
+    // ✅ IMPROVED: Validate ingredients - check for empty names
+    const validIngredients = form.ingredients.filter((ing) => ing.name.trim());
+    if (validIngredients.length === 0) {
+      return setNotice(t.edit_needIngredient || "Please add at least one ingredient with a name.");
+    }
+
+    // Check if any ingredient has empty name but other fields filled
+    const hasEmptyIngredient = form.ingredients.some((ing) => !ing.name.trim() && (ing.grams > 0 || ing.unit));
+    if (hasEmptyIngredient) {
+      return setNotice(t.edit_fillIngredientName || "Please fill in the ingredient name or remove the empty ingredient.");
+    }
+
+    // ✅ IMPROVED: Validate steps - check for empty text
+    const validSteps = form.steps.filter((step) => step.text.trim());
+    if (validSteps.length === 0) {
+      return setNotice(t.edit_needStep || "Please add at least one step with instructions.");
+    }
+
+    // Check if any step has empty text but other fields filled
+    const hasEmptyStep = form.steps.some((step) => !step.text.trim() && (step.cooking || step.timerMin));
+    if (hasEmptyStep) {
+      return setNotice(t.edit_fillStepText || "Please fill in the step instruction or remove the empty step.");
+    }
+
     setSaving(true);
     setNotice("");
 
     const input: RecipeInput = {
-      ...form,
       title: form.title.trim(),
       description: form.description.trim(),
+      image: form.image || "",
+      category: form.category,
+      prepTime: form.prepTime || "",
+      cookTime: form.cookTime || "",
+      time: form.time || "",
+      duration: form.duration || "",
+      durationMin: form.durationMin || "",
       servings: Math.max(1, Number(form.servings) || 1),
-      ingredients: form.ingredients.filter(Boolean),
-      steps: form.steps.filter(Boolean),
-      tags: form.tags,
+      difficulty: form.difficulty,
+      // ✅ Use validIngredients (filtered)
+      ingredients: validIngredients,
+      // ✅ Use validSteps (filtered)
+      steps: validSteps,
+      tags: form.tags.filter((tag) => tag.trim()),
+      featured: form.featured,
     };
 
     try {
       if (mode === "edit") {
+        // Step 1: Update recipe data
         await updateRecipe(recipeId, input);
+
+        // Step 2: Get all recipes for batch update (if not already loaded)
+        let recipes = allRecipes;
+        if (recipes.length === 0) {
+          recipes = await listRecipes();
+          setAllRecipes(recipes);
+        }
+
+        // Step 3: Prepare batch update for featured status
+        // If featuring: only this recipe gets true, all others get false
+        // If unfeaturing: all get false
+        const updatedRecipes = recipes.map((recipe) => ({
+          id: recipe.id,
+          featured: form.featured ? recipe.id === recipeId : false,
+        }));
+
+        // Step 4: ONE CALL to update all recipes' featured status
+        const result = await batchUpdateFeatured(updatedRecipes);
+
+        console.log(`✅ Updated ${result.updatedCount} recipes`);
+        console.log(`✅ ${result.featuredCount} recipe(s) featured`);
+
         setNotice(t.edit_recipeUpdated || "Recipe updated successfully.");
       } else {
+        // For new recipes, just create with featured status
         await createRecipe(input);
         setNotice(t.edit_recipeCreated || "Recipe created successfully.");
         if (mode === "create") setForm(blank);
@@ -207,7 +373,7 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
                   {t.edit_difficulty}
                   <select
                     value={form.difficulty}
-                    onChange={(event) => update("difficulty", event.target.value as RecipeInput["difficulty"])}
+                    onChange={(event) => update("difficulty", event.target.value as FormState["difficulty"])}
                     className="rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
                   >
                     <option value="Easy">{t.edit_easy}</option>
@@ -232,6 +398,33 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
                   />
                 </label>
                 <label className="flex flex-col gap-2 text-sm font-medium">
+                  {t.edit_time}
+                  <input
+                    value={form.time}
+                    onChange={(event) => update("time", event.target.value)}
+                    placeholder="40 min"
+                    className="rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
+                  />
+                </label>
+                <label className="flex flex-col gap-2 text-sm font-medium">
+                  {t.edit_duration}
+                  <input
+                    value={form.duration}
+                    onChange={(event) => update("duration", event.target.value)}
+                    placeholder="40 min"
+                    className="rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
+                  />
+                </label>
+                <label className="flex flex-col gap-2 text-sm font-medium">
+                  {t.edit_durationMin}
+                  <input
+                    value={form.durationMin}
+                    onChange={(event) => update("durationMin", event.target.value)}
+                    placeholder="40"
+                    className="rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
+                  />
+                </label>
+                <label className="flex flex-col gap-2 text-sm font-medium">
                   {t.edit_serves}
                   <input
                     type="number"
@@ -250,27 +443,50 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
                   />
                 </label>
               </div>
+
+              {/* ✅ UPDATED: Ingredients Section */}
               <section className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <h2 className="font-serif text-xl font-semibold">{t.edit_ingredients}</h2>
                   <button
                     type="button"
-                    onClick={() => addListItem("ingredients")}
+                    onClick={addIngredient}
                     className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-[#f1ece3]"
                   >
                     <Plus /> {t.edit_add}
                   </button>
                 </div>
-                {form.ingredients.map((item, index) => (
-                  <div key={`ingredient-${index}`} className="flex gap-2">
+                {form.ingredients.map((ingredient, index) => (
+                  <div key={`ingredient-${index}`} className="flex gap-2 items-center">
                     <input
-                      value={item}
-                      onChange={(event) => updateList("ingredients", index, event.target.value)}
-                      className="min-w-0 flex-1 rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
+                      value={ingredient.name}
+                      onChange={(e) => updateIngredient(index, "name", e.target.value)}
+                      placeholder={t.edit_ingredientName || "Ingredient name"}
+                      className="flex-1 rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
                     />
+                    <input
+                      type="number"
+                      value={ingredient.grams || ""}
+                      onChange={(e) => updateIngredient(index, "grams", parseFloat(e.target.value) || 0)}
+                      placeholder={t.edit_quantity || "Qty"}
+                      className="w-24 rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
+                    />
+                    <select
+                      value={ingredient.unit}
+                      onChange={(e) => updateIngredient(index, "unit", e.target.value)}
+                      className="w-24 rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
+                    >
+                      <option value="g">{t.unit_g || "g"}</option>
+                      <option value="ml">{t.unit_ml || "ml"}</option>
+                      <option value="pcs">{t.unit_pcs || "pcs"}</option>
+                      <option value="c.s.">{t.unit_cs || "c.s."}</option>
+                      <option value="c.c.">{t.unit_cc || "c.c."}</option>
+                      <option value="roul.">{t.unit_roul || "roul."}</option>
+                      <option value="gousse">{t.unit_gousse || "gousse"}</option>
+                    </select>
                     <button
                       type="button"
-                      onClick={() => removeListItem("ingredients", index)}
+                      onClick={() => removeIngredient(index)}
                       aria-label={t.edit_removeIngredient}
                       className="rounded-lg px-3 text-[#b24d2f] hover:bg-[#f1ece3]"
                     >
@@ -279,28 +495,52 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
                   </div>
                 ))}
               </section>
+
+              {/* ✅ UPDATED: Steps Section */}
               <section className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <h2 className="font-serif text-xl font-semibold">{t.edit_steps}</h2>
                   <button
                     type="button"
-                    onClick={() => addListItem("steps")}
+                    onClick={addStep}
                     className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-[#f1ece3]"
                   >
                     <Plus /> {t.edit_add}
                   </button>
                 </div>
-                {form.steps.map((item, index) => (
-                  <div key={`step-${index}`} className="flex gap-2">
-                    <textarea
-                      value={item}
-                      onChange={(event) => updateList("steps", index, event.target.value)}
-                      rows={2}
-                      className="min-w-0 flex-1 rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
-                    />
+                {form.steps.map((step, index) => (
+                  <div key={`step-${index}`} className="flex gap-2 items-start">
+                    <div className="flex-1">
+                      <textarea
+                        value={step.text}
+                        onChange={(e) => updateStep(index, "text", e.target.value)}
+                        rows={2}
+                        placeholder={t.edit_stepInstruction || "Step instruction"}
+                        className="w-full rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2 items-center">
+                      <label className="flex items-center gap-1 text-sm whitespace-nowrap">
+                        <Timer className="w-4 h-4" />
+                        <input
+                          type="checkbox"
+                          checked={step.cooking || false}
+                          onChange={(e) => updateStep(index, "cooking", e.target.checked)}
+                          className="rounded"
+                        />
+                        {t.edit_cooking || "Cooking"}
+                      </label>
+                      <input
+                        type="number"
+                        value={step.timerMin || ""}
+                        onChange={(e) => updateStep(index, "timerMin", parseInt(e.target.value) || 0)}
+                        placeholder={t.edit_timerMinutes || "Min"}
+                        className="w-20 rounded-xl border border-[#d9d1c3] bg-white px-4 py-2"
+                      />
+                    </div>
                     <button
                       type="button"
-                      onClick={() => removeListItem("steps", index)}
+                      onClick={() => removeStep(index)}
                       aria-label={t.edit_removeStep}
                       className="rounded-lg px-3 text-[#b24d2f] hover:bg-[#f1ece3]"
                     >
@@ -309,11 +549,41 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
                   </div>
                 ))}
               </section>
+
+              {/* Tags Section */}
+              <section className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-serif text-xl font-semibold">{t.edit_tags || "Tags"}</h2>
+                  <button
+                    type="button"
+                    onClick={addTag}
+                    className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-[#f1ece3]"
+                  >
+                    <Plus /> {t.edit_addTag || "Add Tag"}
+                  </button>
+                </div>
+                {form.tags.map((tag, index) => (
+                  <div key={`tag-${index}`} className="flex gap-2">
+                    <input
+                      value={tag}
+                      onChange={(e) => updateTag(index, e.target.value)}
+                      placeholder={t.edit_tagName || "Tag name"}
+                      className="flex-1 rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
+                    />
+                    <button type="button" onClick={() => removeTag(index)} className="rounded-lg px-3 text-[#b24d2f] hover:bg-[#f1ece3]">
+                      <Trash2 />
+                    </button>
+                  </div>
+                ))}
+              </section>
+
               <label className="flex items-center gap-3 text-sm font-medium">
                 <input type="checkbox" checked={form.featured} onChange={(event) => update("featured", event.target.checked)} />
                 {t.edit_featureThisRecipe}
               </label>
+
               {notice && <p className={`text-sm ${notice.includes("success") ? "text-green-600" : "text-[#b24d2f]"}`}>{notice}</p>}
+
               <div className="flex justify-end gap-3">
                 <button type="button" onClick={() => router.push("/")} className="rounded-xl border border-[#ded7cb] px-5 py-3 font-semibold">
                   {t.edit_cancel}

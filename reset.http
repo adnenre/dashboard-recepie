@@ -1,5 +1,5 @@
 ### Variables
-@baseUrl = http://localhost:3000
+@baseUrl = https://dashboard-recepie.vercel.app/
 @email = admin@gmail.com
 @password = Admin2026
 
@@ -38,38 +38,48 @@ POST {{baseUrl}}/api/recipes
 Content-Type: application/json
 
 {
-  "title": "Admin Test Recipe",
-  "description": "Recipe created through the API test file.",
-  "image": "",
-  "category": "Test",
-  "prepTime": "10 min",
-  "cookTime": "20 min",
-  "servings": 4,
-  "difficulty": "Easy",
+  "id": "67b8a1c2d3e4f5a6b7c8d9e0",
+  "title": "Tarte Tatin aux Pommes",
+  "titleLocales": {},
+  "category": "Desserts",
+  "categoryLocales": {},
+  "description": "La classique tarte renversée aux pommes caramélisées, croustillante et fondante à la fois.",
+  "descriptionLocales": {},
+  "image": "https://images.unsplash.com/photo-1621743478914-cc8a86d7e7b5?w=800&h=600&fit=crop&auto=format",
+  "prepTime": "20 min",
+  "prepTimeLocales": {},
+  "cookTime": "35 min",
+  "cookTimeLocales": {},
+  "servings": 6,
+  "difficulty": "Moyen",
+  "featured": false,
   "ingredients": [
-    "2 cups flour",
-    "1 cup sugar",
-    "2 eggs"
+    "6 pièces de Pommes",
+    "100 g de Sucre",
+    "80 g de Beurre",
+    "1 pièce de Pâte feuilletée",
+    "1 càc de Cannelle"
   ],
+  "ingredientsLocales": {},
   "steps": [
-    "Mix the ingredients.",
-    "Pour into a baking dish.",
-    "Bake for 20 minutes."
+    "Préchauffez le four à 200 °C. Épluchez et coupez les pommes en quartiers.",
+    "Dans une poêle allant au four, faites fondre le beurre à feu moyen. Ajoutez le sucre et laissez caraméliser 5 minutes sans remuer.",
+    "Disposez les pommes en rosace serrée sur le caramel. Saupoudrez de cannelle.",
+    "Couvrez de la pâte feuilletée en rentrant les bords sous les pommes.",
+    "Enfournez 30 à 35 minutes jusqu'à ce que la pâte soit dorée.",
+    "Laissez tiédir 5 minutes, puis retournez sur un plat de service. Dégustez tiède."
   ],
-  "tags": [
-    "test",
-    "admin"
-  ],
-  "featured": false
+  "stepsLocales": {},
+  "tags": ["Classique", "Automne", "Caramel"],
+  "tagsLocales": {},
+  "methods": ["four"]
 }
-
-
 ### =========================================================
 ### 5. Get One Recipe
 ### Replace RECIPE_ID with the $id returned from step 4
 ### =========================================================
 
-@recipeId = REPLACE_WITH_RECIPE_ID
+@recipeId = 6a80e6e900209f14f732
 
 GET {{baseUrl}}/api/recipes/{{recipeId}}
 

@@ -7,6 +7,26 @@ export type Locale = "en" | "fr" | "ar";
 
 export type Localized<T> = T | Partial<Record<Locale, T>>;
 
+// ============================================================
+// ✅ NEW: Ingredient and Step types
+// ============================================================
+
+export type Ingredient = {
+  name: string;
+  grams: number;
+  unit: string;
+};
+
+export type Step = {
+  text: string;
+  cooking?: boolean;
+  timerMin?: number;
+};
+
+// ============================================================
+// ✅ UPDATED: Main Recipe Types
+// ============================================================
+
 export type Recipe = {
   id: string;
   title: string;
@@ -15,10 +35,16 @@ export type Recipe = {
   category: string;
   prepTime: string;
   cookTime: string;
+  // ✅ ADDED: New fields
+  time: string;
+  duration: string;
+  durationMin: string;
   servings: number;
   difficulty: "Easy" | "Medium" | "Hard";
-  ingredients: string[];
-  steps: string[];
+  // ✅ Changed from string[] to Ingredient[]
+  ingredients: Ingredient[];
+  // ✅ Changed from string[] to Step[]
+  steps: Step[];
   tags: string[];
   featured: boolean;
   titleLocales?: Partial<Record<Locale, string>>;
@@ -26,8 +52,9 @@ export type Recipe = {
   categoryLocales?: Partial<Record<Locale, string>>;
   prepTimeLocales?: Partial<Record<Locale, string>>;
   cookTimeLocales?: Partial<Record<Locale, string>>;
-  ingredientsLocales?: Partial<Record<Locale, string[]>>;
-  stepsLocales?: Partial<Record<Locale, string[]>>;
+  // ✅ Updated to use Ingredient[] and Step[]
+  ingredientsLocales?: Partial<Record<Locale, Ingredient[]>>;
+  stepsLocales?: Partial<Record<Locale, Step[]>>;
   tagsLocales?: Partial<Record<Locale, string[]>>;
 };
 
@@ -75,4 +102,33 @@ export async function updateRecipe(id: string, input: RecipeInput): Promise<Reci
 // DELETE /api/recipes/:id
 export async function removeRecipe(id: string): Promise<void> {
   await recipeApi.delete(id);
+}
+
+// Batch update featured status - ONE CALL
+export async function batchUpdateFeatured(recipes: Array<{ id: string; featured: boolean }>): Promise<{
+  updatedCount: number;
+  featuredRecipe: { id: string; featured: boolean } | null;
+  featuredCount: number;
+}> {
+  const result = await recipeApi.batchUpdateFeatured(recipes);
+  return {
+    updatedCount: result.updatedCount,
+    featuredRecipe: result.featuredRecipe,
+    featuredCount: result.featuredCount,
+  };
+}
+
+export async function toggleFeaturedWithBatch(recipeId: string, featured: boolean, allRecipes: Array<{ id: string; featured: boolean }>) {
+  // Create the updated recipes array
+  const updatedRecipes = allRecipes.map((recipe) => ({
+    id: recipe.id,
+    // If featuring: only the selected recipe gets true, all others get false
+    // If unfeaturing: all get false
+    featured: featured ? recipe.id === recipeId : false,
+  }));
+
+  // Send all recipes in one call
+  const result = await batchUpdateFeatured(updatedRecipes);
+
+  return result;
 }
