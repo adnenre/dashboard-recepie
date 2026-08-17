@@ -1,5 +1,5 @@
 // lib/api-helper.ts
-import { Recipe, RecipeInput } from "./recipes";
+import { type Recipe, type RecipeInput } from "@/types";
 
 // ============================================================
 // Base API Call

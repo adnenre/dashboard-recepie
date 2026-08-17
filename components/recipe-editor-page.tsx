@@ -3,18 +3,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ChefHat, Plus, Save, Trash2, Timer } from "lucide-react";
+import { ArrowLeft, ChefHat, Plus, Save, Trash2, Timer, Flame } from "lucide-react";
 import { appwriteConfigured } from "@/lib/firebase";
-import {
-  createRecipe,
-  updateRecipe,
-  listRecipes,
-  batchUpdateFeatured,
-  type Recipe,
-  type RecipeInput,
-  type Ingredient,
-  type Step,
-} from "@/lib/recipes";
+import { createRecipe, updateRecipe, listRecipes, batchUpdateFeatured } from "@/lib/recipes";
+import { type Recipe, type RecipeInput, type Ingredient, type Step, COOKING_METHODS } from "@/types";
 import { useLocale } from "@/hooks";
 
 // Form state with Ingredient and Step objects
@@ -33,6 +25,7 @@ type FormState = {
   ingredients: Ingredient[];
   steps: Step[];
   tags: string[];
+  methods: string[]; // ✅ ADDED: Array of method IDs
   featured: boolean;
 };
 
@@ -52,6 +45,7 @@ const blank: FormState = {
   ingredients: [{ name: "", grams: 0, unit: "g" }],
   steps: [{ text: "", cooking: false, timerMin: 0 }],
   tags: [],
+  methods: [],
   featured: false,
 };
 
@@ -97,6 +91,8 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
           ingredients: Array.isArray(recipe.ingredients) && recipe.ingredients.length ? recipe.ingredients : [{ name: "", grams: 0, unit: "g" }],
           steps: Array.isArray(recipe.steps) && recipe.steps.length ? recipe.steps : [{ text: "", cooking: false, timerMin: 0 }],
           tags: Array.isArray(recipe.tags) ? recipe.tags : [],
+          // ✅ ADDED: Parse methods
+          methods: Array.isArray(recipe.methods) ? recipe.methods : [],
           featured: Boolean(recipe.featured),
         });
         setLoading(false);
@@ -119,6 +115,7 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
             ingredients: Array.isArray(demo.ingredients) && demo.ingredients.length ? demo.ingredients : [{ name: "", grams: 0, unit: "g" }],
             steps: Array.isArray(demo.steps) && demo.steps.length ? demo.steps : [{ text: "", cooking: false, timerMin: 0 }],
             tags: Array.isArray(demo.tags) ? demo.tags : [],
+            methods: Array.isArray(demo.methods) ? demo.methods : [],
             featured: Boolean(demo.featured),
           });
         } else {
@@ -137,7 +134,6 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
     update("ingredients", newIngredients);
   };
 
-  // ✅ Adds a complete ingredient with all 3 fields
   const addIngredient = () => {
     update("ingredients", [
       ...form.ingredients,
@@ -167,7 +163,6 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
     update("steps", newSteps);
   };
 
-  // ✅ Adds a complete step with all 3 fields
   const addStep = () => {
     update("steps", [
       ...form.steps,
@@ -190,7 +185,7 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
     );
   };
 
-  // Tag handlers
+  // ✅ Tag handlers
   const addTag = () => {
     update("tags", [...form.tags, ""]);
   };
@@ -208,6 +203,18 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
     );
   };
 
+  // ✅ NEW: Method handlers - toggle selection
+  const toggleMethod = (methodId: string) => {
+    const currentMethods = form.methods;
+    const newMethods = currentMethods.includes(methodId) ? currentMethods.filter((id) => id !== methodId) : [...currentMethods, methodId];
+    update("methods", newMethods);
+  };
+
+  // ✅ NEW: Check if a method is selected
+  const isMethodSelected = (methodId: string): boolean => {
+    return form.methods.includes(methodId);
+  };
+
   async function save(event: React.FormEvent) {
     event.preventDefault();
 
@@ -216,25 +223,21 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
       return setNotice(t.edit_titleAndDescriptionRequired || "Title and description are required.");
     }
 
-    // ✅ IMPROVED: Validate ingredients - check for empty names
     const validIngredients = form.ingredients.filter((ing) => ing.name.trim());
     if (validIngredients.length === 0) {
       return setNotice(t.edit_needIngredient || "Please add at least one ingredient with a name.");
     }
 
-    // Check if any ingredient has empty name but other fields filled
     const hasEmptyIngredient = form.ingredients.some((ing) => !ing.name.trim() && (ing.grams > 0 || ing.unit));
     if (hasEmptyIngredient) {
       return setNotice(t.edit_fillIngredientName || "Please fill in the ingredient name or remove the empty ingredient.");
     }
 
-    // ✅ IMPROVED: Validate steps - check for empty text
     const validSteps = form.steps.filter((step) => step.text.trim());
     if (validSteps.length === 0) {
       return setNotice(t.edit_needStep || "Please add at least one step with instructions.");
     }
 
-    // Check if any step has empty text but other fields filled
     const hasEmptyStep = form.steps.some((step) => !step.text.trim() && (step.cooking || step.timerMin));
     if (hasEmptyStep) {
       return setNotice(t.edit_fillStepText || "Please fill in the step instruction or remove the empty step.");
@@ -255,35 +258,29 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
       durationMin: form.durationMin || "",
       servings: Math.max(1, Number(form.servings) || 1),
       difficulty: form.difficulty,
-      // ✅ Use validIngredients (filtered)
       ingredients: validIngredients,
-      // ✅ Use validSteps (filtered)
       steps: validSteps,
       tags: form.tags.filter((tag) => tag.trim()),
+      // ✅ ADDED: Include methods
+      methods: form.methods,
       featured: form.featured,
     };
 
     try {
       if (mode === "edit") {
-        // Step 1: Update recipe data
         await updateRecipe(recipeId, input);
 
-        // Step 2: Get all recipes for batch update (if not already loaded)
         let recipes = allRecipes;
         if (recipes.length === 0) {
           recipes = await listRecipes();
           setAllRecipes(recipes);
         }
 
-        // Step 3: Prepare batch update for featured status
-        // If featuring: only this recipe gets true, all others get false
-        // If unfeaturing: all get false
         const updatedRecipes = recipes.map((recipe) => ({
           id: recipe.id,
           featured: form.featured ? recipe.id === recipeId : false,
         }));
 
-        // Step 4: ONE CALL to update all recipes' featured status
         const result = await batchUpdateFeatured(updatedRecipes);
 
         console.log(`✅ Updated ${result.updatedCount} recipes`);
@@ -291,7 +288,6 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
 
         setNotice(t.edit_recipeUpdated || "Recipe updated successfully.");
       } else {
-        // For new recipes, just create with featured status
         await createRecipe(input);
         setNotice(t.edit_recipeCreated || "Recipe created successfully.");
         if (mode === "create") setForm(blank);
@@ -444,7 +440,38 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
                 </label>
               </div>
 
-              {/* ✅ UPDATED: Ingredients Section */}
+              {/* ✅ NEW: Cooking Methods Section - Multi-select */}
+              <section className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-serif text-xl font-semibold">Modes de cuisson</h2>
+                  <span className="text-xs text-muted-foreground">
+                    {form.methods.length} sélectionné{form.methods.length !== 1 ? "s" : ""}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-2 ">
+                  {COOKING_METHODS.map((method) => {
+                    const isSelected = isMethodSelected(method.id);
+                    return (
+                      <button
+                        key={method.id}
+                        type="button"
+                        onClick={() => toggleMethod(method.id)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-[#d96c45] border-[#d96c45] text-white shadow-sm"
+                            : "bg-white border-[#d9d1c3] text-[#26352d] hover:bg-[#f5f1e8]"
+                        }`}
+                      >
+                        <Flame className={`w-4 h-4 ${isSelected ? "text-white" : "text-[#d96c45]"}`} />
+                        <span className="text-sm font-medium">{method.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {form.methods.length === 0 && <p className="text-xs text-muted-foreground">Sélectionnez au moins un mode de cuisson</p>}
+              </section>
+
+              {/* Ingredients Section */}
               <section className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <h2 className="font-serif text-xl font-semibold">{t.edit_ingredients}</h2>
@@ -496,7 +523,7 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
                 ))}
               </section>
 
-              {/* ✅ UPDATED: Steps Section */}
+              {/* Steps Section */}
               <section className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <h2 className="font-serif text-xl font-semibold">{t.edit_steps}</h2>

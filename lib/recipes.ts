@@ -2,63 +2,11 @@
 // ⚠️ This file is CLIENT-SAFE - No node-appwrite imports!
 
 import { recipeApi } from "./api-helper";
-
-export type Locale = "en" | "fr" | "ar";
-
-export type Localized<T> = T | Partial<Record<Locale, T>>;
+import { type Locale, type Localized, type Recipe, RecipeInput } from "@/types";
 
 // ============================================================
 // ✅ NEW: Ingredient and Step types
 // ============================================================
-
-export type Ingredient = {
-  name: string;
-  grams: number;
-  unit: string;
-};
-
-export type Step = {
-  text: string;
-  cooking?: boolean;
-  timerMin?: number;
-};
-
-// ============================================================
-// ✅ UPDATED: Main Recipe Types
-// ============================================================
-
-export type Recipe = {
-  id: string;
-  title: string;
-  description: string;
-  image: string;
-  category: string;
-  prepTime: string;
-  cookTime: string;
-  // ✅ ADDED: New fields
-  time: string;
-  duration: string;
-  durationMin: string;
-  servings: number;
-  difficulty: "Easy" | "Medium" | "Hard";
-  // ✅ Changed from string[] to Ingredient[]
-  ingredients: Ingredient[];
-  // ✅ Changed from string[] to Step[]
-  steps: Step[];
-  tags: string[];
-  featured: boolean;
-  titleLocales?: Partial<Record<Locale, string>>;
-  descriptionLocales?: Partial<Record<Locale, string>>;
-  categoryLocales?: Partial<Record<Locale, string>>;
-  prepTimeLocales?: Partial<Record<Locale, string>>;
-  cookTimeLocales?: Partial<Record<Locale, string>>;
-  // ✅ Updated to use Ingredient[] and Step[]
-  ingredientsLocales?: Partial<Record<Locale, Ingredient[]>>;
-  stepsLocales?: Partial<Record<Locale, Step[]>>;
-  tagsLocales?: Partial<Record<Locale, string[]>>;
-};
-
-export type RecipeInput = Omit<Recipe, "id">;
 
 // ============================================================
 // Localized helper
@@ -132,3 +80,95 @@ export async function toggleFeaturedWithBatch(recipeId: string, featured: boolea
 
   return result;
 }
+
+// ============================================================
+// ✅ NEW: Cooking Methods Helpers
+// ============================================================
+
+/**
+ * Get a cooking method by its ID
+ */
+export const getCookingMethod = (id: string) => {
+  const { COOKING_METHODS } = require("@/types");
+  return COOKING_METHODS.find((method: any) => method.id === id);
+};
+
+/**
+ * Get all cooking methods for a recipe
+ */
+export const getRecipeCookingMethods = (recipe: Recipe) => {
+  const { COOKING_METHODS } = require("@/types");
+  if (!recipe || !recipe.methods) return [];
+  return recipe.methods.map((id: string) => COOKING_METHODS.find((method: any) => method.id === id)).filter((method: any) => method !== undefined);
+};
+
+/**
+ * Check if a recipe uses a specific cooking method
+ */
+export const recipeUsesMethod = (recipe: Recipe, methodId: string): boolean => {
+  if (!recipe || !recipe.methods) return false;
+  return recipe.methods.includes(methodId);
+};
+
+/**
+ * Get the primary cooking method (first one) for a recipe
+ */
+export const getPrimaryCookingMethod = (recipe: Recipe) => {
+  const { COOKING_METHODS } = require("@/types");
+  if (!recipe || !recipe.methods || recipe.methods.length === 0) return undefined;
+  return COOKING_METHODS.find((method: any) => method.id === recipe.methods[0]);
+};
+
+/**
+ * Get the icon name for a cooking method (for Feather icons)
+ */
+export const getMethodIcon = (methodId: string): string => {
+  const method = getCookingMethod(methodId);
+  return method?.icon || "help-circle";
+};
+
+/**
+ * Get the label for a cooking method
+ */
+export const getMethodLabel = (methodId: string): string => {
+  const method = getCookingMethod(methodId);
+  return method?.label || methodId;
+};
+
+/**
+ * Check if a cooking method has temperature control
+ */
+export const methodHasTemp = (methodId: string): boolean => {
+  const method = getCookingMethod(methodId);
+  return method?.hasTemp || false;
+};
+
+/**
+ * Get the recommended temperature for a cooking method
+ */
+export const getMethodTemperature = (methodId: string): string | null => {
+  const method = getCookingMethod(methodId);
+  if (!method || !method.hasTemp) return null;
+
+  const temperatures: Record<string, string> = {
+    four: "180 °C",
+    vapeur: "100 °C",
+  };
+
+  return temperatures[methodId] || "180 °C";
+};
+
+/**
+ * Get a formatted string of cooking methods for display
+ */
+export const getMethodsDisplayString = (recipe: Recipe): string => {
+  const methods = getRecipeCookingMethods(recipe);
+  return methods.map((m: any) => m.label).join(" • ");
+};
+
+/**
+ * Check if a recipe has any cooking methods
+ */
+export const recipeHasMethods = (recipe: Recipe): boolean => {
+  return !!(recipe && recipe.methods && recipe.methods.length > 0);
+};

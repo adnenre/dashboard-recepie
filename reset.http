@@ -1,7 +1,8 @@
 ### Variables
-@baseUrl = https://dashboard-recepie.vercel.app/
+@baseUrl = http://localhost:3000/
 @email = admin@gmail.com
 @password = Admin2026
+@recipeId = 6a80e6e900209f14f732
 
 ### =========================================================
 ### 1. Admin Login
@@ -31,7 +32,55 @@ GET {{baseUrl}}/api/recipes
 
 
 ### =========================================================
-### 4. Create Recipe
+### 4. Create Recipe (with new ingredient and step structure)
+### =========================================================
+
+POST {{baseUrl}}/api/recipes
+Content-Type: application/json
+
+{
+  "title": "Crème Brûlée à la Vanille",
+  "description": "Une crème onctueuse parfumée à la vanille de Madagascar, coiffée d'un caramel craquant.",
+  "image": "https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?w=800&h=600&fit=crop&auto=format",
+  "category": "Desserts",
+  "prepTime": "15 min",
+  "cookTime": "30 min",
+  "time": "45 min",
+  "duration": "45 min",
+  "durationMin": "45",
+  "servings": 4,
+  "difficulty": "Easy",
+  "featured": false,
+  "ingredients": [
+    { "name": "Crème liquide", "grams": 500, "unit": "ml" },
+    { "name": "Œufs", "grams": 5, "unit": "pcs" },
+    { "name": "Sucre", "grams": 80, "unit": "g" },
+    { "name": "Gousse de vanille", "grams": 1, "unit": "gousse" },
+    { "name": "Cassonade", "grams": 4, "unit": "c.s." }
+  ],
+  "steps": [
+    { "text": "Préchauffez le four à 150 °C. Fendez la gousse de vanille et grattez les grains.", "cooking": false, "timerMin": 0 },
+    { "text": "Faites chauffer la crème avec la vanille jusqu'à frémissement, retirez du feu.", "cooking": true, "timerMin": 5 },
+    { "text": "Fouettez les jaunes avec le sucre jusqu'à blanchiment. Versez la crème chaude en filet.", "cooking": false, "timerMin": 0 },
+    { "text": "Filtrez et répartissez dans des ramequins. Enfournez au bain-marie.", "cooking": true, "timerMin": 30 },
+    { "text": "Laissez refroidir puis réfrigérez au moins 3 heures.", "cooking": false, "timerMin": 0 },
+    { "text": "Au moment de servir, saupoudrez de cassonade et brûlez au chalumeau.", "cooking": true, "timerMin": 2 }
+  ],
+  "tags": ["Classique", "Vanille", "Festif", "Crémeux"],
+  "methods": ["four"],
+  "titleLocales": {},
+  "descriptionLocales": {},
+  "categoryLocales": {},
+  "prepTimeLocales": {},
+  "cookTimeLocales": {},
+  "ingredientsLocales": {},
+  "stepsLocales": {},
+  "tagsLocales": {}
+}
+
+
+### =========================================================
+### 5. Create Recipe with Old String Format (for testing)
 ### =========================================================
 
 POST {{baseUrl}}/api/recipes
@@ -47,104 +96,164 @@ Content-Type: application/json
   "descriptionLocales": {},
   "image": "https://images.unsplash.com/photo-1621743478914-cc8a86d7e7b5?w=800&h=600&fit=crop&auto=format",
   "prepTime": "20 min",
-  "prepTimeLocales": {},
   "cookTime": "35 min",
-  "cookTimeLocales": {},
+  "time": "55 min",
+  "duration": "55 min",
+  "durationMin": "55",
   "servings": 6,
-  "difficulty": "Moyen",
+  "difficulty": "Medium",
   "featured": false,
   "ingredients": [
-    "6 pièces de Pommes",
-    "100 g de Sucre",
-    "80 g de Beurre",
-    "1 pièce de Pâte feuilletée",
-    "1 càc de Cannelle"
+    { "name": "Pommes", "grams": 6, "unit": "pcs" },
+    { "name": "Sucre", "grams": 100, "unit": "g" },
+    { "name": "Beurre", "grams": 80, "unit": "g" },
+    { "name": "Pâte feuilletée", "grams": 1, "unit": "roul." },
+    { "name": "Cannelle", "grams": 1, "unit": "c.c." }
   ],
   "ingredientsLocales": {},
   "steps": [
-    "Préchauffez le four à 200 °C. Épluchez et coupez les pommes en quartiers.",
-    "Dans une poêle allant au four, faites fondre le beurre à feu moyen. Ajoutez le sucre et laissez caraméliser 5 minutes sans remuer.",
-    "Disposez les pommes en rosace serrée sur le caramel. Saupoudrez de cannelle.",
-    "Couvrez de la pâte feuilletée en rentrant les bords sous les pommes.",
-    "Enfournez 30 à 35 minutes jusqu'à ce que la pâte soit dorée.",
-    "Laissez tiédir 5 minutes, puis retournez sur un plat de service. Dégustez tiède."
+    { "text": "Préchauffez le four à 200 °C. Épluchez et coupez les pommes en quartiers.", "cooking": false, "timerMin": 0 },
+    { "text": "Dans une poêle allant au four, faites fondre le beurre à feu moyen. Ajoutez le sucre et laissez caraméliser 5 minutes sans remuer.", "cooking": true, "timerMin": 5 },
+    { "text": "Disposez les pommes en rosace serrée sur le caramel. Saupoudrez de cannelle.", "cooking": false, "timerMin": 0 },
+    { "text": "Couvrez de la pâte feuilletée en rentrant les bords sous les pommes.", "cooking": false, "timerMin": 0 },
+    { "text": "Enfournez 30 à 35 minutes jusqu'à ce que la pâte soit dorée.", "cooking": true, "timerMin": 35 },
+    { "text": "Laissez tiédir 5 minutes, puis retournez sur un plat de service. Dégustez tiède.", "cooking": false, "timerMin": 0 }
   ],
   "stepsLocales": {},
   "tags": ["Classique", "Automne", "Caramel"],
   "tagsLocales": {},
   "methods": ["four"]
 }
-### =========================================================
-### 5. Get One Recipe
-### Replace RECIPE_ID with the $id returned from step 4
-### =========================================================
 
-@recipeId = 6a80e6e900209f14f732
+
+### =========================================================
+### 6. Get One Recipe
+### =========================================================
 
 GET {{baseUrl}}/api/recipes/{{recipeId}}
 
 
 ### =========================================================
-### 6. Update Recipe
+### 7. Update Recipe (PUT - Full Update)
 ### =========================================================
 
 PUT {{baseUrl}}/api/recipes/{{recipeId}}
 Content-Type: application/json
 
 {
-  "title": "Updated Admin Test Recipe",
-  "description": "This recipe was updated through the API.",
-  "image": "",
-  "category": "Dinner",
-  "prepTime": "15 min",
-  "cookTime": "25 min",
+  "title": "Updated Crème Brûlée",
+  "description": "Une crème onctueuse parfumée à la vanille de Madagascar, coiffée d'un caramel craquant.",
+  "image": "https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?w=800&h=600&fit=crop&auto=format",
+  "category": "Desserts",
+  "prepTime": "20 min",
+  "cookTime": "35 min",
+  "time": "55 min",
+  "duration": "55 min",
+  "durationMin": "55",
   "servings": 6,
   "difficulty": "Medium",
   "ingredients": [
-    "3 cups flour",
-    "1 cup sugar",
-    "3 eggs",
-    "1 cup milk"
+    { "name": "Crème liquide", "grams": 600, "unit": "ml" },
+    { "name": "Œufs", "grams": 6, "unit": "pcs" },
+    { "name": "Sucre", "grams": 100, "unit": "g" },
+    { "name": "Gousses de vanille", "grams": 2, "unit": "gousse" },
+    { "name": "Cassonade", "grams": 6, "unit": "c.s." }
   ],
   "steps": [
-    "Mix all ingredients.",
-    "Prepare the baking dish.",
-    "Bake for 25 minutes."
+    { "text": "Préchauffez le four à 150 °C. Fendez les gousses de vanille et grattez les grains.", "cooking": false, "timerMin": 0 },
+    { "text": "Faites chauffer la crème avec la vanille jusqu'à frémissement, retirez du feu.", "cooking": true, "timerMin": 5 },
+    { "text": "Fouettez les jaunes avec le sucre jusqu'à blanchiment. Versez la crème chaude en filet.", "cooking": false, "timerMin": 0 },
+    { "text": "Filtrez et répartissez dans des ramequins. Enfournez au bain-marie.", "cooking": true, "timerMin": 30 },
+    { "text": "Laissez refroidir puis réfrigérez au moins 3 heures.", "cooking": false, "timerMin": 0 },
+    { "text": "Au moment de servir, saupoudrez de cassonade et brûlez au chalumeau.", "cooking": true, "timerMin": 2 }
   ],
-  "tags": [
-    "test",
-    "updated",
-    "admin"
-  ],
-  "featured": true
+  "tags": ["Classique", "Vanille", "Festif", "Crémeux", "Updated"],
+  "featured": true,
+  "methods": ["four"]
 }
 
 
 ### =========================================================
-### 7. Get Recipe Again
-### Verify that the update worked
+### 8. Patch Recipe (Partial Update)
+### =========================================================
+
+PATCH {{baseUrl}}/api/recipes/{{recipeId}}
+Content-Type: application/json
+
+{
+  "title": "Crème Brûlée à la Vanille (Patch)",
+  "featured": false,
+  "difficulty": "Hard"
+}
+
+
+### =========================================================
+### 9. Batch Update Featured Status (NEW ROUTE!)
+### =========================================================
+
+POST {{baseUrl}}/api/recipes/batch-feature
+Content-Type: application/json
+
+{
+  "recipes": [
+    { "id": "{{recipeId}}", "featured": true },
+    { "id": "6a80e6e900209f14f732", "featured": false },
+    { "id": "67b8a1c2d3e4f5a6b7c8d9e0", "featured": false }
+  ]
+}
+
+
+### =========================================================
+### 10. Feature a Single Recipe (Using Batch Feature with one recipe)
+### =========================================================
+
+POST {{baseUrl}}/api/recipes/batch-feature
+Content-Type: application/json
+
+{
+  "recipes": [
+    { "id": "{{recipeId}}", "featured": true }
+  ]
+}
+
+
+### =========================================================
+### 11. Unfeature All Recipes
+### =========================================================
+
+POST {{baseUrl}}/api/recipes/batch-feature
+Content-Type: application/json
+
+{
+  "recipes": [
+    { "id": "{{recipeId}}", "featured": false }
+  ]
+}
+
+
+### =========================================================
+### 12. Get Recipe to Verify Featured Status
 ### =========================================================
 
 GET {{baseUrl}}/api/recipes/{{recipeId}}
 
 
 ### =========================================================
-### 8. List Recipes Again
-### Verify the updated recipe appears in the list
+### 13. List Recipes to See All Featured Statuses
 ### =========================================================
 
 GET {{baseUrl}}/api/recipes
 
 
 ### =========================================================
-### 9. Delete Recipe
+### 14. Delete Recipe
 ### =========================================================
 
 DELETE {{baseUrl}}/api/recipes/{{recipeId}}
 
 
 ### =========================================================
-### 10. Verify Recipe Was Deleted
+### 15. Verify Recipe Was Deleted
 ### Expected: 404 Recipe not found
 ### =========================================================
 
@@ -152,14 +261,14 @@ GET {{baseUrl}}/api/recipes/{{recipeId}}
 
 
 ### =========================================================
-### 11. Admin Logout
+### 16. Admin Logout
 ### =========================================================
 
 POST {{baseUrl}}/api/admin/auth/logout
 
 
 ### =========================================================
-### 12. Verify Session After Logout
+### 17. Verify Session After Logout
 ### Expected: 401 Authentication required
 ### =========================================================
 
@@ -167,8 +276,15 @@ GET {{baseUrl}}/api/admin/auth/verify
 
 
 ### =========================================================
-### 13. Try Recipes After Logout
+### 18. Try Recipes After Logout
 ### Expected: 401 Authentication required
 ### =========================================================
 
 GET {{baseUrl}}/api/recipes
+
+
+### =========================================================
+### 19. Health Check
+### =========================================================
+
+GET {{baseUrl}}/api/health

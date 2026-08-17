@@ -5,7 +5,7 @@ import { ID } from "node-appwrite";
 
 import { createAdminClient } from "@/lib/appwrite-admin";
 import { verifyAdmin } from "@/lib/admin-auth";
-import { type Ingredient, type Step, type Recipe } from "@/lib/recipes";
+import { type Ingredient, type Step, type Recipe } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +40,6 @@ function getNumber(value: unknown): number {
 
   if (typeof value === "string") {
     const parsed = Number(value);
-
     return Number.isFinite(parsed) ? parsed : 1;
   }
 
@@ -69,8 +68,8 @@ function cleanImageUrl(value: unknown): string {
   if (url.startsWith('"') && url.endsWith('"')) {
     try {
       url = JSON.parse(url);
-    } catch {
-      // Ignore.
+    } catch (error) {
+      console.warn("Failed to parse image URL:", error);
     }
   }
 
@@ -98,29 +97,18 @@ function parseObject<T>(value: unknown, fallback: T = {} as T): T {
 
   try {
     const parsed = JSON.parse(value);
-
     if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
       return parsed as T;
     }
-  } catch {
-    try {
-      const cleaned = value.replace(/\\"/g, '"').replace(/\\\\/g, "\\");
-
-      const parsed = JSON.parse(cleaned);
-
-      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-        return parsed as T;
-      }
-    } catch {
-      // Ignore.
-    }
+  } catch (error) {
+    console.warn("Failed to parse object:", error);
   }
 
   return fallback;
 }
 
 // ============================================================
-// Parse ingredients as objects (not strings)
+// Parse ingredients as objects
 // ============================================================
 
 function parseIngredients(value: unknown): Ingredient[] {
@@ -128,48 +116,57 @@ function parseIngredients(value: unknown): Ingredient[] {
     return [];
   }
 
-  // If it's already an array of objects
   if (Array.isArray(value)) {
-    return value
-      .filter((item) => item !== null && item !== undefined)
-      .map((item) => {
-        // If item is already an Ingredient object
-        if (typeof item === "object" && item !== null && "name" in item) {
-          return {
-            name: String(item.name || ""),
-            grams: typeof item.grams === "number" ? item.grams : 0,
-            unit: String(item.unit || "g"),
-          };
-        }
-        // If item is a string, try to parse it
-        if (typeof item === "string") {
-          try {
-            const parsed = JSON.parse(item);
-            if (parsed && typeof parsed === "object" && "name" in parsed) {
-              return {
-                name: String(parsed.name || ""),
-                grams: typeof parsed.grams === "number" ? parsed.grams : 0,
-                unit: String(parsed.unit || "g"),
-              };
-            }
-          } catch {
-            // Not a JSON string, ignore
+    const result: Ingredient[] = [];
+
+    for (const item of value) {
+      if (item === null || item === undefined) continue;
+
+      if (typeof item === "object" && item !== null && "name" in item) {
+        result.push({
+          name: String(item.name || ""),
+          grams: typeof item.grams === "number" ? item.grams : 0,
+          unit: String(item.unit || "g"),
+        });
+        continue;
+      }
+
+      if (typeof item === "string") {
+        if (item === "[object Object]") continue;
+
+        try {
+          const parsed = JSON.parse(item);
+          if (parsed && typeof parsed === "object" && "name" in parsed) {
+            result.push({
+              name: String(parsed.name || ""),
+              grams: typeof parsed.grams === "number" ? parsed.grams : 0,
+              unit: String(parsed.unit || "g"),
+            });
+            continue;
           }
+        } catch {
+          // Not valid JSON, skip
         }
-        // Default fallback
-        return { name: String(item), grams: 0, unit: "g" };
-      });
+      }
+
+      // Default fallback for any other type
+      result.push({ name: String(item), grams: 0, unit: "g" });
+    }
+
+    return result;
   }
 
-  // If it's a string, try to parse it
   if (typeof value === "string") {
+    if (value === "[object Object]") return [];
+
     try {
       const parsed = JSON.parse(value);
       if (Array.isArray(parsed)) {
         return parseIngredients(parsed);
       }
     } catch {
-      // Not a JSON string
+      // Not valid JSON, return empty
+      return [];
     }
   }
 
@@ -177,7 +174,7 @@ function parseIngredients(value: unknown): Ingredient[] {
 }
 
 // ============================================================
-// Parse steps as objects (not strings)
+// Parse steps as objects (FIXED)
 // ============================================================
 
 function parseSteps(value: unknown): Step[] {
@@ -185,48 +182,57 @@ function parseSteps(value: unknown): Step[] {
     return [];
   }
 
-  // If it's already an array of objects
   if (Array.isArray(value)) {
-    return value
-      .filter((item) => item !== null && item !== undefined)
-      .map((item) => {
-        // If item is already a Step object
-        if (typeof item === "object" && item !== null && "text" in item) {
-          return {
-            text: String(item.text || ""),
-            cooking: typeof item.cooking === "boolean" ? item.cooking : false,
-            timerMin: typeof item.timerMin === "number" ? item.timerMin : 0,
-          };
-        }
-        // If item is a string, try to parse it
-        if (typeof item === "string") {
-          try {
-            const parsed = JSON.parse(item);
-            if (parsed && typeof parsed === "object" && "text" in parsed) {
-              return {
-                text: String(parsed.text || ""),
-                cooking: typeof parsed.cooking === "boolean" ? parsed.cooking : false,
-                timerMin: typeof parsed.timerMin === "number" ? parsed.timerMin : 0,
-              };
-            }
-          } catch {
-            // Not a JSON string, ignore
+    const result: Step[] = [];
+
+    for (const item of value) {
+      if (item === null || item === undefined) continue;
+
+      if (typeof item === "object" && item !== null && "text" in item) {
+        result.push({
+          text: String(item.text || ""),
+          cooking: typeof item.cooking === "boolean" ? item.cooking : false,
+          timerMin: typeof item.timerMin === "number" ? item.timerMin : 0,
+        });
+        continue;
+      }
+
+      if (typeof item === "string") {
+        if (item === "[object Object]") continue;
+
+        try {
+          const parsed = JSON.parse(item);
+          if (parsed && typeof parsed === "object" && "text" in parsed) {
+            result.push({
+              text: String(parsed.text || ""),
+              cooking: typeof parsed.cooking === "boolean" ? parsed.cooking : false,
+              timerMin: typeof parsed.timerMin === "number" ? parsed.timerMin : 0,
+            });
+            continue;
           }
+        } catch {
+          // Not valid JSON, skip
         }
-        // Default fallback
-        return { text: String(item), cooking: false, timerMin: 0 };
-      });
+      }
+
+      // Default fallback for any other type
+      result.push({ text: String(item), cooking: false, timerMin: 0 });
+    }
+
+    return result;
   }
 
-  // If it's a string, try to parse it
   if (typeof value === "string") {
+    if (value === "[object Object]") return [];
+
     try {
       const parsed = JSON.parse(value);
       if (Array.isArray(parsed)) {
         return parseSteps(parsed);
       }
     } catch {
-      // Not a JSON string
+      // Not valid JSON, return empty
+      return [];
     }
   }
 
@@ -243,17 +249,31 @@ function parseTags(value: unknown): string[] {
   }
 
   if (Array.isArray(value)) {
-    return value.filter((item) => item !== null && item !== undefined).map((item) => String(item));
+    const result: string[] = [];
+    for (const item of value) {
+      if (item === null || item === undefined) continue;
+      const str = String(item);
+      if (str !== "[object Object]") {
+        result.push(str);
+      }
+    }
+    return result;
   }
 
   if (typeof value === "string") {
+    if (value === "[object Object]") return [];
+
     try {
       const parsed = JSON.parse(value);
       if (Array.isArray(parsed)) {
         return parsed.map((item) => String(item));
       }
     } catch {
-      // Not a JSON string
+      // Not valid JSON, try to split by comma
+      if (value.includes(",")) {
+        return value.split(",").map((item) => item.trim());
+      }
+      return value ? [value] : [];
     }
   }
 
@@ -261,7 +281,45 @@ function parseTags(value: unknown): string[] {
 }
 
 // ============================================================
-// Normalize recipe - handles objects correctly
+// Parse methods as strings (array of method IDs)
+// ============================================================
+
+function parseMethods(value: unknown): string[] {
+  if (value === null || value === undefined) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    const result: string[] = [];
+    for (const item of value) {
+      if (item === null || item === undefined) continue;
+      const str = String(item);
+      if (str !== "[object Object]") {
+        result.push(str);
+      }
+    }
+    return result;
+  }
+
+  if (typeof value === "string") {
+    if (value === "[object Object]") return [];
+
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return parsed.map((item) => String(item));
+      }
+    } catch {
+      // Not valid JSON
+      return [];
+    }
+  }
+
+  return [];
+}
+
+// ============================================================
+// Normalize recipe
 // ============================================================
 
 function normalizeRecipe(id: string, data: Record<string, unknown>): Recipe {
@@ -278,12 +336,10 @@ function normalizeRecipe(id: string, data: Record<string, unknown>): Recipe {
     durationMin: getString(data.durationMin),
     servings: getNumber(data.servings),
     difficulty: data.difficulty === "Medium" || data.difficulty === "Hard" ? data.difficulty : "Easy",
-
-    // Parse as objects, not strings
     ingredients: parseIngredients(data.ingredients),
     steps: parseSteps(data.steps),
     tags: parseTags(data.tags),
-
+    methods: parseMethods(data.methods),
     featured: getBoolean(data.featured),
     titleLocales: parseObject(data.titleLocales),
     descriptionLocales: parseObject(data.descriptionLocales),
@@ -313,12 +369,10 @@ function prepareRecipeForDB(input: Record<string, any>) {
     durationMin: input.durationMin ?? "",
     servings: input.servings ?? 1,
     difficulty: input.difficulty ?? "Easy",
-
-    // Stringify arrays for Appwrite
     ingredients: stringifyJson(input.ingredients ?? []),
     steps: stringifyJson(input.steps ?? []),
     tags: stringifyJson(input.tags ?? []),
-
+    methods: stringifyJson(input.methods ?? []),
     featured: Boolean(input.featured),
     titleLocales: stringifyJson(input.titleLocales ?? {}),
     descriptionLocales: stringifyJson(input.descriptionLocales ?? {}),
@@ -335,35 +389,23 @@ function prepareRecipeForDB(input: Record<string, any>) {
 // Error response
 // ============================================================
 
-function errorResponse(error: any) {
+function errorResponse(error: unknown) {
   console.error("❌ Recipes API error:", error);
 
-  if (error?.message === "Not authenticated") {
-    return NextResponse.json(
-      {
-        error: "Authentication required",
-      },
-      { status: 401 },
-    );
+  const errorMessage = error instanceof Error ? error.message : "Internal server error";
+  const errorCode = error && typeof error === "object" && "code" in error ? (error as { code: number }).code : 500;
+
+  if (errorMessage === "Not authenticated") {
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   }
 
-  if (error?.message === "Admin privileges required") {
-    return NextResponse.json(
-      {
-        error: "Admin privileges required",
-      },
-      { status: 403 },
-    );
+  if (errorMessage === "Admin privileges required") {
+    return NextResponse.json({ error: "Admin privileges required" }, { status: 403 });
   }
 
-  const status = typeof error?.code === "number" && error.code >= 400 && error.code <= 599 ? error.code : 500;
+  const status = errorCode >= 400 && errorCode <= 599 ? errorCode : 500;
 
-  return NextResponse.json(
-    {
-      error: error?.message || "Internal server error",
-    },
-    { status },
-  );
+  return NextResponse.json({ error: errorMessage }, { status });
 }
 
 // ============================================================
@@ -373,7 +415,6 @@ function errorResponse(error: any) {
 export async function GET(request: NextRequest) {
   try {
     const admin = await verifyAdmin(request);
-
     console.log(`✅ Admin verified: ${admin.email}`);
 
     const { tablesDB, databaseId, tableId } = createAdminClient();
@@ -403,38 +444,23 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const admin = await verifyAdmin(request);
-
     console.log(`✅ Admin verified: ${admin.email}`);
 
     let body: Record<string, any>;
 
     try {
       body = await request.json();
-    } catch {
-      return NextResponse.json(
-        {
-          error: "Invalid JSON body",
-        },
-        { status: 400 },
-      );
+    } catch (error) {
+      console.warn("Invalid JSON body:", error);
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
     if (!body.title || !String(body.title).trim()) {
-      return NextResponse.json(
-        {
-          error: "Title is required",
-        },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
     if (!body.category || !String(body.category).trim()) {
-      return NextResponse.json(
-        {
-          error: "Category is required",
-        },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Category is required" }, { status: 400 });
     }
 
     const { tablesDB, databaseId, tableId } = createAdminClient();
@@ -470,7 +496,6 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const admin = await verifyAdmin(request);
-
     console.log(`✅ Admin verified: ${admin.email}`);
 
     const { searchParams } = new URL(request.url);
@@ -484,7 +509,8 @@ export async function PUT(request: NextRequest) {
 
     try {
       body = await request.json();
-    } catch {
+    } catch (error) {
+      console.warn("Invalid JSON body:", error);
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
@@ -518,7 +544,6 @@ export async function PUT(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const admin = await verifyAdmin(request);
-
     console.log(`✅ Admin verified: ${admin.email}`);
 
     const { searchParams } = new URL(request.url);
@@ -532,27 +557,26 @@ export async function PATCH(request: NextRequest) {
 
     try {
       body = await request.json();
-    } catch {
+    } catch (error) {
+      console.warn("Invalid JSON body:", error);
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
     const { tablesDB, databaseId, tableId } = createAdminClient();
 
-    // Get existing recipe
     const existing = await tablesDB.getRow({
       databaseId,
       tableId,
       rowId: id,
     });
 
-    // Merge with existing data
     const mergedData = {
       ...existing,
       ...body,
-      // Stringify arrays if provided
       ingredients: body.ingredients ? stringifyJson(body.ingredients) : existing.ingredients,
       steps: body.steps ? stringifyJson(body.steps) : existing.steps,
       tags: body.tags ? stringifyJson(body.tags) : existing.tags,
+      methods: body.methods ? stringifyJson(body.methods) : existing.methods,
     };
 
     const result = await tablesDB.updateRow({
@@ -581,7 +605,6 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const admin = await verifyAdmin(request);
-
     console.log(`✅ Admin verified: ${admin.email}`);
 
     const { searchParams } = new URL(request.url);
