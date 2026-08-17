@@ -98,6 +98,8 @@ export const translations = {
     edit_serves: "Serves",
     edit_imageUrl: "Image URL",
     edit_ingredients: "Ingredients",
+    edit_fillIngredientName: "Please fill in the ingredient name or remove the empty ingredient.",
+    edit_fillStepText: "Please fill in the step instruction or remove the empty step.",
     edit_add: "Add",
     edit_steps: "Steps",
     edit_removeIngredient: "Remove ingredient",
@@ -119,6 +121,41 @@ export const translations = {
     edit_recipeCreated: "Recipe created successfully.",
     edit_previewMode: "Preview mode: configure Appwrite to persist recipes.",
     edit_couldNotSave: "Could not save recipe. Check Appwrite collection attributes.",
+    // New time fields
+    edit_time: "Total Time",
+    edit_duration: "Duration",
+    edit_durationMin: "Duration (minutes)",
+
+    // Ingredient fields
+    edit_ingredientName: "Ingredient name",
+    edit_quantity: "Quantity",
+    edit_unit: "Unit",
+    edit_grams: "Grams",
+
+    // Step fields
+    edit_stepInstruction: "Step instruction",
+    edit_cooking: "Cooking",
+    edit_timerMinutes: "Minutes",
+
+    // Tags
+    edit_tags: "Tags",
+    edit_addTag: "Add Tag",
+    edit_tagName: "Tag name",
+
+    // Validation messages
+    edit_needIngredient: "Please add at least one ingredient with a name.",
+    edit_needStep: "Please add at least one step with instructions.",
+    edit_needValidIngredients: "Please add valid ingredients.",
+    edit_needValidSteps: "Please add valid steps.",
+
+    // Unit options
+    unit_g: "g",
+    unit_ml: "ml",
+    unit_pcs: "pcs",
+    unit_cs: "c.s.",
+    unit_cc: "c.c.",
+    unit_roul: "roul.",
+    unit_gousse: "gousse",
   },
   fr: {
     Backtorecipes: "retour au recettes",
@@ -231,6 +268,43 @@ export const translations = {
     edit_recipeCreated: "Recette créée avec succès.",
     edit_previewMode: "Mode aperçu : configurez Appwrite pour enregistrer les recettes.",
     edit_couldNotSave: "Impossible d'enregistrer la recette. Vérifiez les attributs de la collection Appwrite.",
+    edit_time: "Temps total",
+    edit_duration: "Durée",
+    edit_durationMin: "Durée (minutes)",
+
+    // Ingredient fields
+    edit_ingredientName: "Nom de l'ingrédient",
+    edit_quantity: "Quantité",
+    edit_unit: "Unité",
+    edit_grams: "Grammes",
+
+    // Step fields
+    edit_stepInstruction: "Instruction de l'étape",
+    edit_cooking: "Cuisson",
+    edit_timerMinutes: "Minutes",
+
+    // Tags
+    edit_tags: "Étiquettes",
+    edit_addTag: "Ajouter une étiquette",
+    edit_tagName: "Nom de l'étiquette",
+
+    // Validation messages
+    edit_needIngredient: "Veuillez ajouter au moins un ingrédient avec un nom.",
+    edit_needStep: "Veuillez ajouter au moins une étape avec des instructions.",
+    edit_fillIngredientName: "Veuillez remplir le nom de l'ingrédient ou supprimer l'ingrédient vide.",
+    edit_fillStepText: "Veuillez remplir l'instruction de l'étape ou supprimer l'étape vide.",
+
+    edit_needValidIngredients: "Veuillez ajouter des ingrédients valides.",
+    edit_needValidSteps: "Veuillez ajouter des étapes valides.",
+
+    // Unit options
+    unit_g: "g",
+    unit_ml: "ml",
+    unit_pcs: "pièces",
+    unit_cs: "c.s.",
+    unit_cc: "c.c.",
+    unit_roul: "roul.",
+    unit_gousse: "gousse",
   },
   ar: {
     Backtorecipes: "العودة إلى الوصفات",
@@ -274,6 +348,7 @@ export const translations = {
     steps: "الخطوات",
     tags: "الوسوم",
     addIngredient: "إضافة مكوّن",
+
     addStep: "إضافة خطوة",
     addTag: "إضافة وسم",
     remove: "إزالة",
@@ -318,6 +393,8 @@ export const translations = {
     edit_serves: "يكفي لـ",
     edit_imageUrl: "رابط الصورة",
     edit_ingredients: "المكونات",
+    edit_fillIngredientName: "يرجى ملء اسم المكون أو إزالة المكون الفارغ.",
+    edit_fillStepText: "يرجى ملء تعليمات الخطوة أو إزالة الخطوة الفارغة.",
     edit_add: "إضافة",
     edit_steps: "الخطوات",
     edit_removeIngredient: "حذف المكون",
@@ -339,6 +416,40 @@ export const translations = {
     edit_recipeCreated: "تم إنشاء الوصفة بنجاح.",
     edit_previewMode: "وضع المعاينة: قم بتكوين Appwrite لحفظ الوصفات.",
     edit_couldNotSave: "تعذر حفظ الوصفة. تحقق من سمات مجموعة Appwrite.",
+    edit_time: "الوقت الإجمالي",
+    edit_duration: "المدة",
+    edit_durationMin: "المدة (بالدقائق)",
+
+    // Ingredient fields
+    edit_ingredientName: "اسم المكون",
+    edit_quantity: "الكمية",
+    edit_unit: "الوحدة",
+    edit_grams: "الجرام",
+
+    // Step fields
+    edit_stepInstruction: "تعليمات الخطوة",
+    edit_cooking: "طبخ",
+    edit_timerMinutes: "دقائق",
+
+    // Tags
+    edit_tags: "الوسوم",
+    edit_addTag: "إضافة وسم",
+    edit_tagName: "اسم الوسم",
+
+    // Validation messages
+    edit_needIngredient: "يرجى إضافة مكون واحد على الأقل باسم.",
+    edit_needStep: "يرجى إضافة خطوة واحدة على الأقل مع تعليمات.",
+    edit_needValidIngredients: "يرجى إضافة مكونات صالحة.",
+    edit_needValidSteps: "يرجى إضافة خطوات صالحة.",
+
+    // Unit options
+    unit_g: "جرام",
+    unit_ml: "مل",
+    unit_pcs: "قطعة",
+    unit_cs: "ملعقة كبيرة",
+    unit_cc: "ملعقة صغيرة",
+    unit_roul: "رول",
+    unit_gousse: "فص",
   },
 } as const;
 
