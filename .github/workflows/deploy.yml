@@ -1,0 +1,16 @@
+# .github/workflows/notify-slack.yml
+name: Notify Slack
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack notification
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+            -d "{\"text\":\"✅ Déploiement réussi !\n📦 ${{ github.repository }}\n🌿 ${{ github.ref_name }}\n🔗 https://${{ github.repository_owner }}.vercel.app\"}" \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
