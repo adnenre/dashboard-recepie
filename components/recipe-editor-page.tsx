@@ -484,41 +484,56 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
                   </button>
                 </div>
                 {form.ingredients.map((ingredient, index) => (
-                  <div key={`ingredient-${index}`} className="flex gap-2 items-center">
+                  <div
+                    key={`ingredient-${index}`}
+                    className="flex flex-col sm:flex-row gap-2 p-3 sm:p-0 rounded-xl sm:rounded-none border border-[#f0ede8] sm:border-0 bg-white/80 sm:bg-transparent"
+                  >
+                    {/* Nom - largeur complète sur mobile */}
                     <input
                       value={ingredient.name}
                       onChange={(e) => updateIngredient(index, "name", e.target.value)}
                       placeholder={t.edit_ingredientName || "Ingredient name"}
-                      className="flex-1 rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
+                      className="flex-1 rounded-xl border border-[#d9d1c3] bg-white px-3 sm:px-4 py-2.5 sm:py-3 text-sm"
                     />
-                    <input
-                      type="number"
-                      value={ingredient.grams || ""}
-                      onChange={(e) => updateIngredient(index, "grams", parseFloat(e.target.value) || 0)}
-                      placeholder={t.edit_quantity || "Qty"}
-                      className="w-24 rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
-                    />
-                    <select
-                      value={ingredient.unit}
-                      onChange={(e) => updateIngredient(index, "unit", e.target.value)}
-                      className="w-24 rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
-                    >
-                      <option value="g">{t.unit_g || "g"}</option>
-                      <option value="ml">{t.unit_ml || "ml"}</option>
-                      <option value="pcs">{t.unit_pcs || "pcs"}</option>
-                      <option value="c.s.">{t.unit_cs || "c.s."}</option>
-                      <option value="c.c.">{t.unit_cc || "c.c."}</option>
-                      <option value="roul.">{t.unit_roul || "roul."}</option>
-                      <option value="gousse">{t.unit_gousse || "gousse"}</option>
-                    </select>
-                    <button
-                      type="button"
-                      onClick={() => removeIngredient(index)}
-                      aria-label={t.edit_removeIngredient}
-                      className="rounded-lg px-3 text-[#b24d2f] hover:bg-[#f1ece3]"
-                    >
-                      <Trash2 />
-                    </button>
+
+                    {/* Groupe quantité/unité/bouton sur une ligne */}
+                    <div className="flex flex-col sm:flex-row gap-2 items-center">
+                      <div className="flex items-center justify-center sm:justify-center gap-2">
+                        <input
+                          type="number"
+                          value={ingredient.grams || ""}
+                          onChange={(e) => updateIngredient(index, "grams", parseFloat(e.target.value) || 0)}
+                          placeholder={t.edit_quantity || "Qty"}
+                          className=" w-16 sm:w-20 rounded-xl border border-[#d9d1c3] bg-white px-3 py-2.5 sm:py-3 text-sm"
+                          min="0"
+                          step="0.5"
+                        />
+
+                        <select
+                          value={ingredient.unit}
+                          onChange={(e) => updateIngredient(index, "unit", e.target.value)}
+                          className="w-16 sm:w-20 rounded-xl border border-[#d9d1c3] bg-white px-2 sm:px-4 py-2.5 sm:py-3 text-sm appearance-none"
+                        >
+                          <option value="g">{t.unit_g || "g"}</option>
+                          <option value="ml">{t.unit_ml || "ml"}</option>
+                          <option value="pcs">{t.unit_pcs || "pcs"}</option>
+                          <option value="c.s.">{t.unit_cs || "c.s."}</option>
+                          <option value="c.c.">{t.unit_cc || "c.c."}</option>
+                          <option value="roul.">{t.unit_roul || "roul."}</option>
+                          <option value="gousse">{t.unit_gousse || "gousse"}</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center justify-center sm:justify-center">
+                        <button
+                          type="button"
+                          onClick={() => removeIngredient(index)}
+                          aria-label={t.edit_removeIngredient}
+                          className="shrink-0 rounded-lg px-2 sm:px-3 py-2.5 sm:py-3 text-[#b24d2f] hover:bg-[#f1ece3] transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </section>
@@ -536,43 +551,61 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
                   </button>
                 </div>
                 {form.steps.map((step, index) => (
-                  <div key={`step-${index}`} className="flex gap-2 items-start">
-                    <div className="flex-1">
-                      <textarea
-                        value={step.text}
-                        onChange={(e) => updateStep(index, "text", e.target.value)}
-                        rows={2}
-                        placeholder={t.edit_stepInstruction || "Step instruction"}
-                        className="w-full rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
-                      />
+                  <div
+                    key={`step-${index}`}
+                    className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center p-2 sm:p-1.5 rounded-lg border border-[#e8e3d8] bg-white/40"
+                  >
+                    {/* Numéro */}
+                    <div className="flex items-center justify-center sm:justify-center">
+                      <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#b24d2f] text-white flex items-center justify-center text-[10px] sm:text-xs font-bold shrink-0">
+                        {index + 1}
+                      </span>
                     </div>
-                    <div className="flex flex-col gap-2 items-center">
-                      <label className="flex items-center gap-1 text-sm whitespace-nowrap">
-                        <Timer className="w-4 h-4" />
+
+                    {/* Texte - très compact */}
+                    <textarea
+                      value={step.text}
+                      onChange={(e) => updateStep(index, "text", e.target.value)}
+                      rows={1}
+                      placeholder={t.edit_stepInstruction || "Step"}
+                      className="flex-1 min-w-0 rounded-lg border border-[#d9d1c3] bg-white px-4  py-4  text-[11px] sm:text-xs min-h-7.5 sm:min-h-8 resize-y"
+                    />
+
+                    {/* Contrôles - compact */}
+                    <div className="flex flex-row gap-1.5 items-center justify-center sm:justify-center">
+                      <label className="flex items-center gap-0.5 text-[10px] sm:text-xs whitespace-nowrap cursor-pointer">
+                        <Timer className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                         <input
                           type="checkbox"
                           checked={step.cooking || false}
                           onChange={(e) => updateStep(index, "cooking", e.target.checked)}
-                          className="rounded"
+                          className="rounded w-3 h-3 sm:w-3.5 sm:h-3.5"
                         />
-                        {t.edit_cooking || "Cooking"}
+                        <span className="hidden sm:inline">{t.edit_cooking || "Cook"}</span>
                       </label>
+
                       <input
                         type="number"
                         value={step.timerMin || ""}
                         onChange={(e) => updateStep(index, "timerMin", parseInt(e.target.value) || 0)}
-                        placeholder={t.edit_timerMinutes || "Min"}
-                        className="w-20 rounded-xl border border-[#d9d1c3] bg-white px-4 py-2"
+                        placeholder="Min"
+                        className="w-10 sm:w-14 rounded-lg border border-[#d9d1c3] bg-white px-1 sm:px-1.5 py-1 sm:py-1.5 text-[10px] sm:text-xs text-center"
+                        min="0"
+                        step="1"
                       />
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => removeStep(index)}
-                      aria-label={t.edit_removeStep}
-                      className="rounded-lg px-3 text-[#b24d2f] hover:bg-[#f1ece3]"
-                    >
-                      <Trash2 />
-                    </button>
+
+                    {/* Supprimer */}
+                    <div className="flex items-center justify-center sm:justify-center">
+                      <button
+                        type="button"
+                        onClick={() => removeStep(index)}
+                        aria-label={t.edit_removeStep}
+                        className="shrink-0 rounded-lg px-2 sm:px-3 py-2.5 sm:py-3 text-[#b24d2f] hover:bg-[#f1ece3] transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </section>
@@ -597,8 +630,12 @@ function RecipeEditorPage({ mode = "edit", recipeId = "" }: { mode?: "create" | 
                       placeholder={t.edit_tagName || "Tag name"}
                       className="flex-1 rounded-xl border border-[#d9d1c3] bg-white px-4 py-3"
                     />
-                    <button type="button" onClick={() => removeTag(index)} className="rounded-lg px-3 text-[#b24d2f] hover:bg-[#f1ece3]">
-                      <Trash2 />
+                    <button
+                      type="button"
+                      onClick={() => removeTag(index)}
+                      className="shrink-0 rounded-lg px-2 sm:px-3 py-2.5 sm:py-3 text-[#b24d2f] hover:bg-[#f1ece3] transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                   </div>
                 ))}
