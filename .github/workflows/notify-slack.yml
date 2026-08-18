@@ -9,14 +9,9 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
+      # Pas besoin de checkout ! On utilise les variables GitHub
       - name: Send Slack notification
         run: |
-          # Récupérer les informations du commit
-          COMMIT_MSG=$(git log -1 --pretty=format:"%s")
-          COMMIT_AUTHOR=$(git log -1 --pretty=format:"%an")
-          COMMIT_SHA=$(git log -1 --pretty=format:"%h")
-          COMMIT_DATE=$(git log -1 --pretty=format:"%ad" --date=format:"%d/%m/%Y %H:%M")
-
           curl -X POST -H "Content-Type: application/json" \
             -d '{
               "text": "🚀 *Nouveau déploiement sur Vercel*",
@@ -62,11 +57,11 @@ jobs:
                   "fields": [
                     {
                       "type": "mrkdwn",
-                      "text": "*📝 Commit:*\n`'${COMMIT_SHA}'`"
+                      "text": "*📝 Commit:*\n`${{ github.sha }}`"
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "*👤 Auteur:*\n${COMMIT_AUTHOR}"
+                      "text": "*👤 Auteur:*\n${{ github.actor }}"
                     }
                   ]
                 },
@@ -75,11 +70,11 @@ jobs:
                   "fields": [
                     {
                       "type": "mrkdwn",
-                      "text": "*💬 Message:*\n${COMMIT_MSG}"
+                      "text": "*💬 Message:*\n${{ github.event.head_commit.message }}"
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "*🕐 Date:*\n${COMMIT_DATE}"
+                      "text": "*🕐 Date:*\n${{ github.event.head_commit.timestamp }}"
                     }
                   ]
                 },
