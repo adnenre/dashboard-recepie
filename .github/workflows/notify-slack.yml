@@ -1,0 +1,100 @@
+# .github/workflows/notify-slack.yml
+name: Notify Slack on Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack notification
+        run: |
+          # Récupérer les informations du commit
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s")
+          COMMIT_AUTHOR=$(git log -1 --pretty=format:"%an")
+          COMMIT_SHA=$(git log -1 --pretty=format:"%h")
+          COMMIT_DATE=$(git log -1 --pretty=format:"%ad" --date=format:"%d/%m/%Y %H:%M")
+
+          curl -X POST -H "Content-Type: application/json" \
+            -d '{
+              "text": "🚀 *Nouveau déploiement sur Vercel*",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "🚀 Nouveau déploiement sur Vercel"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*✅ Statut:*\nSuccès"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*📦 Projet:*\n${{ github.repository }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*🌿 Branche:*\n`${{ github.ref_name }}`"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*🔗 URL:*\nhttps://dashboard-recepie.vercel.app"
+                    }
+                  ]
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*📝 Commit:*\n`'${COMMIT_SHA}'`"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*👤 Auteur:*\n${COMMIT_AUTHOR}"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*💬 Message:*\n${COMMIT_MSG}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*🕐 Date:*\n${COMMIT_DATE}"
+                    }
+                  ]
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "🔗 <https://dashboard-recepie.vercel.app|Voir le site> • <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|Voir le commit>"
+                    }
+                  ]
+                }
+              ]
+            }' \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
