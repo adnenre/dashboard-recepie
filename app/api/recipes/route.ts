@@ -412,10 +412,10 @@ function errorResponse(error: unknown) {
 // GET /api/recipes
 // ============================================================
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const admin = await verifyAdmin(request);
-    console.log(`✅ Admin verified: ${admin.email}`);
+    // const admin = await verifyAdmin(request);
+    //  console.log(`✅ Admin verified: ${admin.email}`);
 
     const { tablesDB, databaseId, tableId } = createAdminClient();
 

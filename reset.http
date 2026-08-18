@@ -2,7 +2,7 @@
 @baseUrl = http://localhost:3000/
 @email = admin@gmail.com
 @password = Admin2026
-@recipeId = 6a80e6e900209f14f732
+@recipeId = 6a80e788003b2babb283
 
 ### =========================================================
 ### 1. Admin Login
@@ -23,16 +23,22 @@ Content-Type: application/json
 
 GET {{baseUrl}}/api/admin/auth/verify
 
+### =========================================================
+### 3. Get One Recipe
+### =========================================================
+
+GET {{baseUrl}}/api/recipes/6a80e788003b2babb283
+
 
 ### =========================================================
-### 3. List All Recipes
+### 4. List All Recipes
 ### =========================================================
 
 GET {{baseUrl}}/api/recipes
 
 
 ### =========================================================
-### 4. Create Recipe (with new ingredient and step structure)
+### 5. Create Recipe (with new ingredient and step structure)
 ### =========================================================
 
 POST {{baseUrl}}/api/recipes
@@ -80,7 +86,7 @@ Content-Type: application/json
 
 
 ### =========================================================
-### 5. Create Recipe with Old String Format (for testing)
+### 6. Create Recipe with Old String Format (for testing)
 ### =========================================================
 
 POST {{baseUrl}}/api/recipes
@@ -125,12 +131,6 @@ Content-Type: application/json
   "methods": ["four"]
 }
 
-
-### =========================================================
-### 6. Get One Recipe
-### =========================================================
-
-GET {{baseUrl}}/api/recipes/{{recipeId}}
 
 
 ### =========================================================
