@@ -3,6 +3,7 @@
 @email = admin@gmail.com
 @password = Admin2026
 @recipeId = 6a80e788003b2babb283
+@translationId = 
 
 ### =========================================================
 ### 1. Admin Login
@@ -23,22 +24,35 @@ Content-Type: application/json
 
 GET {{baseUrl}}/api/admin/auth/verify
 
+
 ### =========================================================
-### 3. Get One Recipe
+### 3. Admin Logout
+### =========================================================
+
+POST {{baseUrl}}/api/admin/auth/logout
+
+
+### =========================================================
+### RECIPES ENDPOINTS
+### =========================================================
+
+
+### =========================================================
+### 4. Get One Recipe
 ### =========================================================
 
 GET {{baseUrl}}/api/recipes/6a80e788003b2babb283
 
 
 ### =========================================================
-### 4. List All Recipes
+### 5. List All Recipes
 ### =========================================================
 
 GET {{baseUrl}}/api/recipes
 
 
 ### =========================================================
-### 5. Create Recipe (with new ingredient and step structure)
+### 6. Create Recipe (with new ingredient and step structure)
 ### =========================================================
 
 POST {{baseUrl}}/api/recipes
@@ -83,54 +97,6 @@ Content-Type: application/json
   "stepsLocales": {},
   "tagsLocales": {}
 }
-
-
-### =========================================================
-### 6. Create Recipe with Old String Format (for testing)
-### =========================================================
-
-POST {{baseUrl}}/api/recipes
-Content-Type: application/json
-
-{
-  "id": "67b8a1c2d3e4f5a6b7c8d9e0",
-  "title": "Tarte Tatin aux Pommes",
-  "titleLocales": {},
-  "category": "Desserts",
-  "categoryLocales": {},
-  "description": "La classique tarte renversée aux pommes caramélisées, croustillante et fondante à la fois.",
-  "descriptionLocales": {},
-  "image": "https://images.unsplash.com/photo-1621743478914-cc8a86d7e7b5?w=800&h=600&fit=crop&auto=format",
-  "prepTime": "20 min",
-  "cookTime": "35 min",
-  "time": "55 min",
-  "duration": "55 min",
-  "durationMin": "55",
-  "servings": 6,
-  "difficulty": "Medium",
-  "featured": false,
-  "ingredients": [
-    { "name": "Pommes", "grams": 6, "unit": "pcs" },
-    { "name": "Sucre", "grams": 100, "unit": "g" },
-    { "name": "Beurre", "grams": 80, "unit": "g" },
-    { "name": "Pâte feuilletée", "grams": 1, "unit": "roul." },
-    { "name": "Cannelle", "grams": 1, "unit": "c.c." }
-  ],
-  "ingredientsLocales": {},
-  "steps": [
-    { "text": "Préchauffez le four à 200 °C. Épluchez et coupez les pommes en quartiers.", "cooking": false, "timerMin": 0 },
-    { "text": "Dans une poêle allant au four, faites fondre le beurre à feu moyen. Ajoutez le sucre et laissez caraméliser 5 minutes sans remuer.", "cooking": true, "timerMin": 5 },
-    { "text": "Disposez les pommes en rosace serrée sur le caramel. Saupoudrez de cannelle.", "cooking": false, "timerMin": 0 },
-    { "text": "Couvrez de la pâte feuilletée en rentrant les bords sous les pommes.", "cooking": false, "timerMin": 0 },
-    { "text": "Enfournez 30 à 35 minutes jusqu'à ce que la pâte soit dorée.", "cooking": true, "timerMin": 35 },
-    { "text": "Laissez tiédir 5 minutes, puis retournez sur un plat de service. Dégustez tiède.", "cooking": false, "timerMin": 0 }
-  ],
-  "stepsLocales": {},
-  "tags": ["Classique", "Automne", "Caramel"],
-  "tagsLocales": {},
-  "methods": ["four"]
-}
-
 
 
 ### =========================================================
@@ -188,7 +154,7 @@ Content-Type: application/json
 
 
 ### =========================================================
-### 9. Batch Update Featured Status (NEW ROUTE!)
+### 9. Batch Update Featured Status
 ### =========================================================
 
 POST {{baseUrl}}/api/recipes/batch-feature
@@ -197,78 +163,145 @@ Content-Type: application/json
 {
   "recipes": [
     { "id": "{{recipeId}}", "featured": true },
-    { "id": "6a80e6e900209f14f732", "featured": false },
-    { "id": "67b8a1c2d3e4f5a6b7c8d9e0", "featured": false }
+    { "id": "6a80e6e900209f14f732", "featured": false }
   ]
 }
 
 
 ### =========================================================
-### 10. Feature a Single Recipe (Using Batch Feature with one recipe)
-### =========================================================
-
-POST {{baseUrl}}/api/recipes/batch-feature
-Content-Type: application/json
-
-{
-  "recipes": [
-    { "id": "{{recipeId}}", "featured": true }
-  ]
-}
-
-
-### =========================================================
-### 11. Unfeature All Recipes
-### =========================================================
-
-POST {{baseUrl}}/api/recipes/batch-feature
-Content-Type: application/json
-
-{
-  "recipes": [
-    { "id": "{{recipeId}}", "featured": false }
-  ]
-}
-
-
-### =========================================================
-### 12. Get Recipe to Verify Featured Status
-### =========================================================
-
-GET {{baseUrl}}/api/recipes/{{recipeId}}
-
-
-### =========================================================
-### 13. List Recipes to See All Featured Statuses
-### =========================================================
-
-GET {{baseUrl}}/api/recipes
-
-
-### =========================================================
-### 14. Delete Recipe
+### 10. Delete Recipe
 ### =========================================================
 
 DELETE {{baseUrl}}/api/recipes/{{recipeId}}
 
 
 ### =========================================================
-### 15. Verify Recipe Was Deleted
-### Expected: 404 Recipe not found
+### Get all recipes 
 ### =========================================================
-
-GET {{baseUrl}}/api/recipes/{{recipeId}}
-
+GET {{baseUrl}}/api/recipes
 
 ### =========================================================
-### 16. Admin Logout
+### 11. Get All Translations (with optional filters)
 ### =========================================================
 
-POST {{baseUrl}}/api/admin/auth/logout
+GET {{baseUrl}}/api/configuration/translations?namespace=common
+
+### =========================================================
+### 12. Get Translations by raw
+### =========================================================
+
+GET {{baseUrl}}/api/configuration/translations?raw=true
+### =========================================================
+### 12. Get Translations by raw
+### =========================================================
+
+GET {{baseUrl}}/api/configuration/translations?locale=fr
+
+### =========================================================
+### 12. Get Translations by Locale
+### =========================================================
+
+GET {{baseUrl}}/api/configuration/translations?locale=fr
 
 
 ### =========================================================
-### 17. Verify Session After Logout
+### 13. Get Translations by Namespace
+### =========================================================
+
+GET {{baseUrl}}/api/configuration/translations?namespace=recipes
+
+
+### =========================================================
+### 14. Search Translations by Key
+### =========================================================
+
+GET {{baseUrl}}/api/configuration/translations?search=greeting
+
+
+### =========================================================
+### 15. Get Recipe Translations
+### =========================================================
+
+GET {{baseUrl}}/api/configuration/translations/recipe/{{recipeId}}
+
+
+### =========================================================
+### 16. Get Recipe Translations for a Specific Locale
+### =========================================================
+
+GET {{baseUrl}}/api/configuration/translations/recipe/{{recipeId}}?locale=fr
+
+
+### =========================================================
+### 17. Get Single Translation by ID
+### =========================================================
+
+GET {{baseUrl}}/api/configuration/translations/{{translationId}}
+
+
+### =========================================================
+### 18. Create New Translation
+### =========================================================
+
+POST {{baseUrl}}/api/configuration/translations
+Content-Type: application/json
+
+{
+  "key": "recipe.6a80e788003b2babb283.title",
+  "locale": "fr",
+  "value": "Soupe de légumes courge-courgette",
+  "type": "string",
+  "namespace": "recipes"
+}
+
+
+### =========================================================
+### 19. Update Translation
+### =========================================================
+
+PUT {{baseUrl}}/api/configuration/translations/{{translationId}}
+Content-Type: application/json
+
+{
+  "value": "Soupe de légumes courge-courgette (Updated)"
+}
+
+
+### =========================================================
+### 20. Delete Translation
+### =========================================================
+
+DELETE {{baseUrl}}/api/configuration/translations/{{translationId}}
+
+
+### =========================================================
+### 21. Get UI Translations (common namespace)
+### =========================================================
+
+GET {{baseUrl}}/api/configuration/translations?namespace=common
+
+
+### =========================================================
+### 22. Get All Recipe Translations (recipes namespace)
+### =========================================================
+
+GET {{baseUrl}}/api/configuration/translations?namespace=recipes
+
+
+### =========================================================
+### HEALTH CHECK
+### =========================================================
+
+
+### =========================================================
+### 23. Health Check
+### =========================================================
+
+GET {{baseUrl}}/api/health
+
+
+### =========================================================
+### 24. Verify Session After Logout
 ### Expected: 401 Authentication required
 ### =========================================================
 
@@ -276,15 +309,8 @@ GET {{baseUrl}}/api/admin/auth/verify
 
 
 ### =========================================================
-### 18. Try Recipes After Logout
+### 25. Try Recipes After Logout
 ### Expected: 401 Authentication required
 ### =========================================================
 
 GET {{baseUrl}}/api/recipes
-
-
-### =========================================================
-### 19. Health Check
-### =========================================================
-
-GET {{baseUrl}}/api/health

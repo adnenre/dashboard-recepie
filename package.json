@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "clean": "rm -rf .next && rm -rf node_modules/.cache",
+    "migrate:translations": "tsx scripts/migrate-translations.ts",
     "vercel-deploy": "npm run clean && vercel --prod --force"
   },
   "dependencies": {
