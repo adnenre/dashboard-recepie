@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ID } from "node-appwrite";
 
-import { createAdminClient } from "@/lib/appwrite-admin";
+import { createAdminClient, TABLES } from "@/lib/appwrite-admin";
 import { verifyAdmin } from "@/lib/admin-auth";
 import { type Ingredient, type Step, type Recipe } from "@/types";
 
@@ -414,14 +414,11 @@ function errorResponse(error: unknown) {
 
 export async function GET() {
   try {
-    // const admin = await verifyAdmin(request);
-    //  console.log(`✅ Admin verified: ${admin.email}`);
-
-    const { tablesDB, databaseId, tableId } = createAdminClient();
+    const { tablesDB, databaseId } = createAdminClient();
 
     const result = await tablesDB.listRows({
       databaseId,
-      tableId,
+      tableId: TABLES.RECIPES,
     });
 
     const recipes = result.rows.map((row: any) => normalizeRecipe(row.$id, row));
@@ -463,13 +460,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Category is required" }, { status: 400 });
     }
 
-    const { tablesDB, databaseId, tableId } = createAdminClient();
+    const { tablesDB, databaseId } = createAdminClient();
 
     const prepared = prepareRecipeForDB(body);
 
     const result = await tablesDB.createRow({
       databaseId,
-      tableId,
+      tableId: TABLES.RECIPES,
       rowId: ID.unique(),
       data: prepared,
     });
@@ -514,13 +511,13 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    const { tablesDB, databaseId, tableId } = createAdminClient();
+    const { tablesDB, databaseId } = createAdminClient();
 
     const prepared = prepareRecipeForDB(body);
 
     const result = await tablesDB.updateRow({
       databaseId,
-      tableId,
+      tableId: TABLES.RECIPES,
       rowId: id,
       data: prepared,
     });
@@ -562,11 +559,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    const { tablesDB, databaseId, tableId } = createAdminClient();
+    const { tablesDB, databaseId } = createAdminClient();
 
     const existing = await tablesDB.getRow({
       databaseId,
-      tableId,
+      tableId: TABLES.RECIPES,
       rowId: id,
     });
 
@@ -581,7 +578,7 @@ export async function PATCH(request: NextRequest) {
 
     const result = await tablesDB.updateRow({
       databaseId,
-      tableId,
+      tableId: TABLES.RECIPES,
       rowId: id,
       data: mergedData,
     });
@@ -614,11 +611,11 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Recipe ID is required" }, { status: 400 });
     }
 
-    const { tablesDB, databaseId, tableId } = createAdminClient();
+    const { tablesDB, databaseId } = createAdminClient();
 
     await tablesDB.deleteRow({
       databaseId,
-      tableId,
+      tableId: TABLES.RECIPES,
       rowId: id,
     });
 

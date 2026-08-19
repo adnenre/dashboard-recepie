@@ -1,9 +1,10 @@
 // components/recipe-admin.tsx
+
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ChefHat, Edit3, LogOut, Plus, Search, Trash2, Mail, Lock } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { ChefHat, Edit3, LogOut, Plus, Search, Trash2, Mail, Lock, Globe } from "lucide-react";
 import { appwriteConfigured } from "@/lib/firebase";
 import { localizedValue } from "@/lib/recipes";
 import { type Recipe } from "@/types";
@@ -14,6 +15,7 @@ import { authApi, recipeApi } from "@/lib/api-helper";
 
 export function RecipeAdmin() {
   const router = useRouter();
+  const pathname = usePathname();
   const auth = useAuth();
   const { user, loading: authLoading, loggedIn, setUser, setLoggedIn } = auth;
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -238,6 +240,16 @@ export function RecipeAdmin() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* NEW: Translations link */}
+            <button
+              onClick={() => router.push("/configuration/translations")}
+              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+                pathname?.startsWith("/configuration") ? "bg-[#f5f1e8] text-[#d96c45]" : "text-[#8a7765] hover:bg-[#f5f1e8]"
+              }`}
+            >
+              <Globe className="size-4" />
+              Translations
+            </button>
             <span className="text-sm text-[#8a7765] hidden sm:inline">{user?.name || user?.email}</span>
             {language}
             <button onClick={logout} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-[#f5f1e8] transition-colors">

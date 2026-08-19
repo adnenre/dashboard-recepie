@@ -1,0 +1,387 @@
+[
+  {
+    "id": "6a80e71b001889bfd0cf",
+    "title": "Poêlée de courgettes et courge à la sauce tomate",
+    "description": "Un plat végétarien coloré et savoureux, parfait pour un repas léger.",
+    "image": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&h=400&fit=crop&auto=format",
+    "category": "Légumes",
+    "prepTime": "10 min",
+    "cookTime": "20 min",
+    "time": "",
+    "duration": "40 min",
+    "durationMin": "40",
+    "servings": 4,
+    "difficulty": "Easy",
+    "ingredients": [
+      { "name": "Courgettes", "grams": 400, "unit": "g" },
+      { "name": "Courge butternut", "grams": 300, "unit": "g" },
+      { "name": "Sauce tomate", "grams": 250, "unit": "g" },
+      { "name": "Ail", "grams": 15, "unit": "g" },
+      { "name": "Herbes de Provence", "grams": 5, "unit": "g" },
+      { "name": "Huile d'olive", "grams": 30, "unit": "ml" }
+    ],
+    "steps": [
+      { "text": "Coupez les courgettes en rondelles et la courge en dés de 2 cm.", "cooking": false, "timerMin": 0 },
+      { "text": "Faites chauffer l'huile dans une grande poêle à feu vif.", "cooking": false, "timerMin": 0 },
+      { "text": "Faites revenir l'ail émincé 1 min, puis ajoutez la courge.", "cooking": true, "timerMin": 1 },
+      { "text": "Après 5 min, ajoutez les courgettes et faites sauter.", "cooking": true, "timerMin": 5 },
+      { "text": "Versez la sauce tomate, ajoutez les herbes, mélangez et couvrez.", "cooking": true, "timerMin": 12 },
+      { "text": "Rectifiez l'assaisonnement et servez chaud.", "cooking": false, "timerMin": 0 }
+    ],
+    "tags": ["légumes", "courgette", "courge", "sauce tomate", "végétarien"],
+    "methods": ["gaz", "induction"],
+    "featured": false,
+    "titleLocales": {
+      "fr": "Poêlée de courgettes et courge à la sauce tomate",
+      "en": "Zucchini and Squash Sauté with Tomato Sauce",
+      "ar": "مقلي الكوسا والقرع بصلصة الطماطم"
+    },
+    "descriptionLocales": {
+      "fr": "Un plat végétarien coloré et savoureux, parfait pour un repas léger.",
+      "en": "A colorful and flavorful vegetarian dish, perfect for a light meal.",
+      "ar": "طبق نباتي ملون ولذيذ، مثالي لوجبة خفيفة."
+    },
+    "categoryLocales": {
+      "fr": "Légumes",
+      "en": "Vegetables",
+      "ar": "خضروات"
+    }
+  },
+  {
+    "id": "6a80e7470033be3a25d0",
+    "title": "Poisson mariné au vinaigre et pommes de terre rôties",
+    "description": "Un plat raffiné alliant fraîcheur du poisson mariné et croustillant des pommes de terre.",
+    "image": "https://images.unsplash.com/photo-1665401015549-712c0dc5ef85?w=600&h=400&fit=crop&auto=format",
+    "category": "Salades",
+    "prepTime": "20 min",
+    "cookTime": "25 min",
+    "time": "",
+    "duration": "30 min",
+    "durationMin": "30",
+    "servings": 2,
+    "difficulty": "Easy",
+    "ingredients": [
+      { "name": "Filets de poisson", "grams": 400, "unit": "g" },
+      { "name": "Vinaigre blanc", "grams": 50, "unit": "g" },
+      { "name": "Pommes de terre", "grams": 500, "unit": "g" },
+      { "name": "Citron", "grams": 60, "unit": "g" },
+      { "name": "Thym frais", "grams": 5, "unit": "g" },
+      { "name": "Huile d'olive", "grams": 40, "unit": "g" }
+    ],
+    "steps": [
+      { "text": "Préchauffez le four à 200°C.", "cooking": false, "timerMin": 0 },
+      { "text": "Coupez les pommes de terre en quartiers, huilez-les et enfournez.", "cooking": true, "timerMin": 25 },
+      { "text": "Mélangez vinaigre, jus de citron, thym et huile pour la marinade.", "cooking": false, "timerMin": 0 },
+      { "text": "Badigeonnez les filets de marinade et laissez reposer 15 min.", "cooking": false, "timerMin": 0 },
+      { "text": "Faites cuire le poisson à la poêle 3 min par côté.", "cooking": true, "timerMin": 3 },
+      { "text": "Servez le poisson sur les pommes de terre avec le reste de marinade.", "cooking": false, "timerMin": 0 }
+    ],
+    "tags": ["poisson", "pommes de terre", "marinade", "vinaigre", "citron"],
+    "methods": ["gaz", "induction"],
+    "featured": false,
+    "titleLocales": {
+      "fr": "Poisson mariné au vinaigre et pommes de terre rôties",
+      "en": "Marinated Fish with Vinegar and Roasted Potatoes",
+      "ar": "سمك متبل بالخل و البطاطس المشوية"
+    },
+    "descriptionLocales": {
+      "fr": "Un plat raffiné alliant fraîcheur du poisson mariné et croustillant des pommes de terre.",
+      "en": "A refined dish combining the freshness of marinated fish and crispy roasted potatoes.",
+      "ar": "طبق راقي يجمع بين نضارة السمك المتبل و مقرمشية البطاطس المشوية."
+    },
+    "categoryLocales": {
+      "fr": "Salades",
+      "en": "Salads",
+      "ar": "سلطات"
+    }
+  },
+  {
+    "id": "6a80e77500137571dbfd",
+    "title": "Pigeon rôti au miel et pommes de terre fondantes",
+    "description": "Une recette gastronomique pour les grandes occasions, avec un pigeon tendre et une sauce miel-romarin.",
+    "image": "https://images.unsplash.com/photo-1635146037474-dfbb9a8a03f7?w=600&h=400&fit=crop&auto=format",
+    "category": "Viandes",
+    "prepTime": "15 min",
+    "cookTime": "55 min",
+    "time": "",
+    "duration": "30 min",
+    "durationMin": "30",
+    "servings": 4,
+    "difficulty": "Easy",
+    "ingredients": [
+      { "name": "Pigeons", "grams": 1200, "unit": "g" },
+      { "name": "Miel", "grams": 80, "unit": "g" },
+      { "name": "Pommes de terre", "grams": 800, "unit": "g" },
+      { "name": "Romarin", "grams": 10, "unit": "g" },
+      { "name": "Beurre", "grams": 40, "unit": "g" },
+      { "name": "Ail", "grams": 20, "unit": "g" }
+    ],
+    "steps": [
+      { "text": "Préchauffez le four à 180°C. Salez et poivrez les pigeons.", "cooking": false, "timerMin": 0 },
+      { "text": "Faites dorer les pigeons dans une cocotte avec le beurre.", "cooking": true, "timerMin": 8 },
+      { "text": "Badigeonnez de miel, ajoutez romarin et ail. Enfournez.", "cooking": true, "timerMin": 40 },
+      { "text": "Pelez et taillez les pommes de terre. Faites-les dorer à la poêle.", "cooking": false, "timerMin": 0 },
+      { "text": "Ajoutez les pommes de terre autour des pigeons et terminez la cuisson", "cooking": true, "timerMin": 20 },
+      { "text": "Laissez reposer 5 min avant de servir.", "cooking": false, "timerMin": 0 }
+    ],
+    "tags": ["pigeon", "miel", "romarin", "gibier", "gastronomique"],
+    "methods": ["gaz", "induction"],
+    "featured": false,
+    "titleLocales": {
+      "fr": "Pigeon rôti au miel et pommes de terre fondantes",
+      "en": "Honey-Roasted Pigeon with Melting Potatoes",
+      "ar": "حمام مشوي بالعسل و البطاطس الذائبة"
+    },
+    "descriptionLocales": {
+      "fr": "Une recette gastronomique pour les grandes occasions, avec un pigeon tendre et une sauce miel-romarin.",
+      "en": "A gourmet recipe for special occasions, featuring tender pigeon with a honey-rosemary sauce.",
+      "ar": "وصفة فاخرة للمناسبات الخاصة، مع حمام طري و صلصة العسل و إكليل الجبل."
+    },
+    "categoryLocales": {
+      "fr": "Viandes",
+      "en": "Meats",
+      "ar": "لحوم"
+    }
+  },
+  {
+    "id": "6a80e788003b2babb283",
+    "title": "Soupe de légumes courge-courgette",
+    "description": "Une soupe onctueuse et réconfortante, parfaite pour les soirs d'automne.",
+    "image": "https://images.unsplash.com/photo-1613844237701-8f3664fc2eff?w=600&h=400&fit=crop&auto=format",
+    "category": "Soupes",
+    "prepTime": "15 min",
+    "cookTime": "20 min",
+    "time": "",
+    "duration": "30 min",
+    "durationMin": "30",
+    "servings": 4,
+    "difficulty": "Easy",
+    "ingredients": [
+      { "name": "Courge butternut", "grams": 500, "unit": "g" },
+      { "name": "Courgettes", "grams": 300, "unit": "g" },
+      { "name": "Pommes de terre", "grams": 200, "unit": "g" },
+      { "name": "Bouillon de légumes", "grams": 1000, "unit": "g" },
+      { "name": "Crème fraîche", "grams": 100, "unit": "g" },
+      { "name": "Oignon", "grams": 80, "unit": "g" }
+    ],
+    "steps": [
+      { "text": "Épluchez et coupez tous les légumes en gros morceaux.", "cooking": false, "timerMin": 0 },
+      { "text": "Faites revenir l'oignon dans un filet d'huile 3 min.", "cooking": false, "timerMin": 0 },
+      { "text": "Ajoutez les légumes et le bouillon chaud. Portez à ébullition.", "cooking": false, "timerMin": 0 },
+      { "text": "Faites cuire à feu moyen jusqu'à tendreté des légumes (20 min).", "cooking": false, "timerMin": 0 },
+      { "text": "Mixez finement, incorporez la crème fraîche. Rectifiez l'assaisonnement.", "cooking": false, "timerMin": 0 },
+      { "text": "Servez avec un filet de crème et des graines de courge.", "cooking": false, "timerMin": 0 }
+    ],
+    "tags": ["soupe", "courge", "courgette", "velouté", "automne"],
+    "methods": ["gaz", "induction"],
+    "featured": false,
+    "titleLocales": {
+      "fr": "Soupe de légumes courge-courgette",
+      "en": "Squash and Zucchini Vegetable Soup",
+      "ar": "شوربة الخضار بالقرع و الكوسا"
+    },
+    "descriptionLocales": {
+      "fr": "Une soupe onctueuse et réconfortante, parfaite pour les soirs d'automne.",
+      "en": "A creamy and comforting soup, perfect for autumn evenings.",
+      "ar": "شوربة كريمية ومريحة، مثالية لأمسيات الخريف."
+    },
+    "categoryLocales": {
+      "fr": "Soupes",
+      "en": "Soups",
+      "ar": "شوربات"
+    }
+  },
+  {
+    "id": "6a80e79e001cf89ab228",
+    "title": "Tartines de pain complet, sauce tomate et poisson",
+    "description": "Des tartines originales et équilibrées, parfaites pour un déjeuner rapide et sain.",
+    "image": "https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=600&h=400&fit=crop&auto=format",
+    "category": "Salades",
+    "prepTime": "10 min",
+    "cookTime": "10 min",
+    "time": "",
+    "duration": "30 min",
+    "durationMin": "30",
+    "servings": 2,
+    "difficulty": "Easy",
+    "ingredients": [
+      { "name": "Pain complet", "grams": 200, "unit": "g" },
+      { "name": "Sauce tomate", "grams": 150, "unit": "ml" },
+      { "name": "Poisson cuit", "grams": 200, "unit": "g" },
+      { "name": "persil frais", "grams": 10, "unit": "g" },
+      { "name": "Huile d'olive", "grams": 20, "unit": "ml" },
+      { "name": "Câpres", "grams": 15, "unit": "g" }
+    ],
+    "steps": [
+      { "text": "Faites griller les tranches de pain complet.", "cooking": false, "timerMin": 0 },
+      { "text": "Étalez généreusement la sauce tomate chaude sur chaque tartine.", "cooking": false, "timerMin": 0 },
+      { "text": "Disposez les filets de poisson émiettés par-dessus.", "cooking": false, "timerMin": 0 },
+      { "text": "Ajoutez les câpres, arrosez d'huile d'olive.", "cooking": false, "timerMin": 0 },
+      { "text": "Parsemez de persil ciselé et servez immédiatement.", "cooking": false, "timerMin": 0 }
+    ],
+    "tags": ["tartines", "pain complet", "poisson", "sauce tomate", "câpres"],
+    "methods": ["gaz", "induction"],
+    "featured": false,
+    "titleLocales": {
+      "fr": "Tartines de pain complet, sauce tomate et poisson",
+      "en": "Whole Wheat Toast with Tomato Sauce and Fish",
+      "ar": "توست خبز كامل مع صلصة الطماطم و السمك"
+    },
+    "descriptionLocales": {
+      "fr": "Des tartines originales et équilibrées, parfaites pour un déjeuner rapide et sain.",
+      "en": "Original and balanced toasts, perfect for a quick and healthy lunch.",
+      "ar": "توست أصلي ومتوازن، مثالي لوجبة غداء سريعة وصحية."
+    },
+    "categoryLocales": {
+      "fr": "Salades",
+      "en": "Salads",
+      "ar": "سلطات"
+    }
+  },
+  {
+    "id": "6a80e7bc000210a3f804",
+    "title": "Café gourmand et thé vert glacé",
+    "description": "Une pause gourmande avec deux boissons rafraîchissantes, accompagnées de petits gâteaux.",
+    "image": "https://images.unsplash.com/photo-1749280447307-31a68eb38673?w=600&h=400&fit=crop&auto=format",
+    "category": "Desserts",
+    "prepTime": "5 min",
+    "cookTime": "10 min",
+    "time": "",
+    "duration": "30 min",
+    "durationMin": "30",
+    "servings": 2,
+    "difficulty": "Easy",
+    "ingredients": [
+      { "name": "Café expresso", "grams": 60, "unit": "ml" },
+      { "name": "Thé vert", "grams": 4, "unit": "g" },
+      { "name": "Sucre", "grams": 20, "unit": "g" },
+      { "name": "Jus de citron", "grams": 30, "unit": "ml" },
+      { "name": "Glaçons", "grams": 200, "unit": "g" },
+      { "name": "Eau froide", "grams": 300, "unit": "ml" }
+    ],
+    "steps": [
+      { "text": "Préparez un expresso serré et laissez refroidir.", "cooking": false, "timerMin": 0 },
+      { "text": "Infusez le thé vert 3 min dans l'eau à 75°C.", "cooking": false, "timerMin": 0 },
+      { "text": "Sucrez le thé, ajoutez le jus de citron. Laissez refroidir.", "cooking": false, "timerMin": 0 },
+      { "text": "Remplissez deux grands verres de glaçons.", "cooking": false, "timerMin": 0 },
+      { "text": "Versez le thé glacé dans un verre, le café dans l'autre.", "cooking": false, "timerMin": 0 },
+      { "text": "Servez avec de petits gâteaux pour le côté gourmand.", "cooking": false, "timerMin": 0 }
+    ],
+    "tags": ["café", "thé vert", "glacé", "boisson", "gourmand"],
+    "methods": ["gaz", "induction"],
+    "featured": false,
+    "titleLocales": {
+      "fr": "Café gourmand et thé vert glacé",
+      "en": "Gourmet Coffee and Iced Green Tea",
+      "ar": "قهوة فاخرة و شاي أخضر مثلج"
+    },
+    "descriptionLocales": {
+      "fr": "Une pause gourmande avec deux boissons rafraîchissantes, accompagnées de petits gâteaux.",
+      "en": "A gourmet break with two refreshing drinks, served with small pastries.",
+      "ar": "استراحة فاخرة مع مشروبين منعشين، يقدم مع الحلويات الصغيرة."
+    },
+    "categoryLocales": {
+      "fr": "Desserts",
+      "en": "Desserts",
+      "ar": "حلويات"
+    }
+  },
+  {
+    "id": "6a831130001eebe05920",
+    "title": "Tarte Tatin aux Pommes",
+    "description": "La classique tarte renversée aux pommes caramélisées, croustillante et fondante à la fois.",
+    "image": "https://images.unsplash.com/photo-1621743478914-cc8a86d7e7b5?w=800&h=600&fit=crop&auto=format",
+    "category": "Desserts",
+    "prepTime": "20 min",
+    "cookTime": "35 min",
+    "time": "",
+    "duration": "30 min",
+    "durationMin": "30",
+    "servings": 6,
+    "difficulty": "Easy",
+    "ingredients": [
+      { "name": "Pommes", "grams": 6, "unit": "pcs" },
+      { "name": "Sucre", "grams": 100, "unit": "g" },
+      { "name": "Beurre", "grams": 80, "unit": "g" },
+      { "name": "Pâte feuilletée", "grams": 1, "unit": "g" },
+      { "name": "Cannelle", "grams": 1, "unit": "c.c." }
+    ],
+    "steps": [
+      { "text": "Préchauffez le four à 200 °C. Épluchez et coupez les pommes en quartiers.", "cooking": false, "timerMin": 0 },
+      {
+        "text": "Dans une poêle allant au four, faites fondre le beurre à feu moyen. Ajoutez le sucre et laissez caraméliser 5 minutes sans remuer.",
+        "cooking": false,
+        "timerMin": 0
+      },
+      { "text": "Disposez les pommes en rosace serrée sur le caramel. Saupoudrez de cannelle.", "cooking": false, "timerMin": 0 },
+      { "text": "Couvrez de la pâte feuilletée en rentrant les bords sous les pommes.", "cooking": false, "timerMin": 0 },
+      { "text": "Enfournez 30 à 35 minutes jusqu'à ce que la pâte soit dorée.", "cooking": true, "timerMin": 30 },
+      { "text": "Laissez tiédir 5 minutes, puis retournez sur un plat de service. Dégustez tiède.", "cooking": false, "timerMin": 0 }
+    ],
+    "tags": ["Classique", "Automne", "Caramel"],
+    "methods": ["gaz", "induction"],
+    "featured": false,
+    "titleLocales": {
+      "fr": "Tarte Tatin aux Pommes",
+      "en": "Apple Tarte Tatin",
+      "ar": "تارت تاتين بالتفاح"
+    },
+    "descriptionLocales": {
+      "fr": "La classique tarte renversée aux pommes caramélisées, croustillante et fondante à la fois.",
+      "en": "The classic upside-down apple tart with caramelized apples, crispy and melting at the same time.",
+      "ar": "تارت التفاح المقلوب الكلاسيكية مع تفاح مكرمل، مقرمشة و ذائبة في نفس الوقت."
+    },
+    "categoryLocales": {
+      "fr": "Desserts",
+      "en": "Desserts",
+      "ar": "حلويات"
+    }
+  },
+  {
+    "id": "6a831d88000a8b076693",
+    "title": "Riz au lait au miel",
+    "description": "",
+    "image": "https://images.unsplash.com/photo-1629240811918-d92da93a93ad?w=600&h=400&fit=crop&auto=format",
+    "category": "Desserts",
+    "prepTime": "20 min",
+    "cookTime": "",
+    "time": "",
+    "duration": "30 min",
+    "durationMin": "30",
+    "servings": 1,
+    "difficulty": "Easy",
+    "ingredients": [
+      { "name": "Riz rond", "grams": 200, "unit": "g" },
+      { "name": "Lait entier", "grams": 800, "unit": "ml" },
+      { "name": "Miel", "grams": 60, "unit": "g" },
+      { "name": "Sucre", "grams": 40, "unit": "g" },
+      { "name": "Extrait de vanille", "grams": 5, "unit": "ml" }
+    ],
+    "steps": [
+      { "text": "Rincez le riz à l'eau froide jusqu'à ce que l'eau soit claire.", "cooking": false, "timerMin": 0 },
+      { "text": "Dans une casserole, portez le lait à ébullition à feu moyen.", "cooking": true, "timerMin": 5 },
+      { "text": "Ajoutez le riz, réduisez le feu et cuisez en remuant régulièrement.", "cooking": true, "timerMin": 20 },
+      { "text": "Incorporez le sucre, le miel et la vanille. Mélangez bien.", "cooking": false, "timerMin": 0 },
+      { "text": "Continuez la cuisson 10 min jusqu'à consistance crémeuse.", "cooking": true, "timerMin": 10 },
+      { "text": "Servez tiède ou frais, nappé d'un filet de miel.", "cooking": false, "timerMin": 0 }
+    ],
+    "tags": ["dessert", "riz au lait", "miel", "vanille"],
+    "methods": ["gaz", "induction"],
+    "featured": false,
+    "titleLocales": {
+      "fr": "Riz au lait au miel",
+      "en": "Honey Rice Pudding",
+      "ar": "رز بالحليب و العسل"
+    },
+    "descriptionLocales": {
+      "fr": "",
+      "en": "",
+      "ar": ""
+    },
+    "categoryLocales": {
+      "fr": "Desserts",
+      "en": "Desserts",
+      "ar": "حلويات"
+    }
+  }
+]

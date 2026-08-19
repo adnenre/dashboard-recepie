@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
-import { createAdminClient } from "@/lib/appwrite-admin";
+import { createAdminClient, TABLES } from "@/lib/appwrite-admin";
 import { verifyAdmin } from "@/lib/admin-auth";
 
 // ============================================================
@@ -132,12 +132,12 @@ export async function GET(
       return NextResponse.json({ error: "Recipe ID is required" }, { status: 400 });
     }
 
-    const { tablesDB, databaseId, tableId } = createAdminClient();
+    const { tablesDB, databaseId } = createAdminClient();
 
     try {
       const result = await tablesDB.getRow({
         databaseId,
-        tableId,
+        tableId: TABLES.RECIPES,
         rowId: id,
       });
 
@@ -203,13 +203,13 @@ export async function PUT(
       return NextResponse.json({ error: "Category is required" }, { status: 400 });
     }
 
-    const { tablesDB, databaseId, tableId } = createAdminClient();
+    const { tablesDB, databaseId } = createAdminClient();
 
     // Check if recipe exists
     try {
       await tablesDB.getRow({
         databaseId,
-        tableId,
+        tableId: TABLES.RECIPES,
         rowId: id,
       });
     } catch (error: any) {
@@ -221,7 +221,7 @@ export async function PUT(
 
     const result = await tablesDB.updateRow({
       databaseId,
-      tableId,
+      tableId: TABLES.RECIPES,
       rowId: id,
       data: prepareRecipeForDB(body),
     });
@@ -278,14 +278,14 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    const { tablesDB, databaseId, tableId } = createAdminClient();
+    const { tablesDB, databaseId } = createAdminClient();
 
     // Check if recipe exists
     let existingRow;
     try {
       existingRow = await tablesDB.getRow({
         databaseId,
-        tableId,
+        tableId: TABLES.RECIPES,
         rowId: id,
       });
     } catch (error: any) {
@@ -303,7 +303,7 @@ export async function PATCH(
 
     const result = await tablesDB.updateRow({
       databaseId,
-      tableId,
+      tableId: TABLES.RECIPES,
       rowId: id,
       data: prepareRecipeForDB(mergedData),
     });
@@ -352,13 +352,13 @@ export async function DELETE(
       return NextResponse.json({ error: "Recipe ID is required" }, { status: 400 });
     }
 
-    const { tablesDB, databaseId, tableId } = createAdminClient();
+    const { tablesDB, databaseId } = createAdminClient();
 
     // Check if recipe exists
     try {
       await tablesDB.getRow({
         databaseId,
-        tableId,
+        tableId: TABLES.RECIPES,
         rowId: id,
       });
     } catch (error: any) {
@@ -370,7 +370,7 @@ export async function DELETE(
 
     await tablesDB.deleteRow({
       databaseId,
-      tableId,
+      tableId: TABLES.RECIPES,
       rowId: id,
     });
 
